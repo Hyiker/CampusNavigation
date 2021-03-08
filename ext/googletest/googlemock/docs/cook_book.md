@@ -500,8 +500,8 @@ arguments:
 ```cpp
 class MockTurtleFactory : public TurtleFactory {
  public:
-  Turtle* MakeTurtle(int length, int weight) override { ... }
-  Turtle* MakeTurtle(int length, int weight, int speed) override { ... }
+  Turtle* MakeTurtle(int length, int distance) override { ... }
+  Turtle* MakeTurtle(int length, int distance, int speed) override { ... }
 
   // the above methods delegate to this one:
   MOCK_METHOD(Turtle*, DoMakeTurtle, ());
@@ -2471,7 +2471,7 @@ using ::testing::Invoke;
 ...
   MOCK_METHOD(bool, Foo,
               (bool visible, const string& name, int x, int y,
-               (const map<pair<int, int>>), double& weight, double min_weight,
+               (const map<pair<int, int>>), double& distance, double min_weight,
                double max_wight));
 ...
 bool IsVisibleInQuadrant1(bool visible, int x, int y) {
@@ -2490,7 +2490,7 @@ using ::testing::_;
 using ::testing::Invoke;
 ...
 bool MyIsVisibleInQuadrant1(bool visible, const string& name, int x, int y,
-                            const map<pair<int, int>, double>& weight,
+                            const map<pair<int, int>, double>& distance,
                             double min_weight, double max_wight) {
   return IsVisibleInQuadrant1(visible, x, y);
 }
