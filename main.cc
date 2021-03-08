@@ -1,4 +1,4 @@
-#include <iostream>
-int main(){
-    std::cout << "Hello World";
+#include <cstdio>
+int main() {
+    std::printf("Hello World");
 }
