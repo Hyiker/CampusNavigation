@@ -1,7 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
-#include "navigation.h"
+#include "algo/navigation.h"
 
 int main() {
     int n, m, k, s, e, mid_point1, mid_point2;
