@@ -1,8 +1,8 @@
 #include <cstdio>
-int add(int a, int b) {
-    return a + b;
-}
+#include "logger/logger.h"
 
 int main() {
-    std::printf("Hello World");
+    Logger::init("stdout", FileMode::APPEND, LogLevel::INFO);
+    std::string info = "Hello World";
+    Logger::info(info);
 }
