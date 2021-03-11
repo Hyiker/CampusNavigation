@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.16)
 
 # Download and unpack googletest at configure time
 configure_file(cmake/CMakeLists.txt.in googletest-download/CMakeLists.txt)
@@ -26,21 +26,22 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  EXCLUDE_FROM_ALL)
 
 
-set(TEST all_tests)
-set(TEST_SOURCES
-add.cc
+set(BINARY ${CMAKE_PROJECT_NAME}_test)
+file(GLOB_RECURSE TEST_SOURCES
+  LIST_DIRECTORIES false *.h *.cc
 )
 set(EXT_DIR ${PROJECT_SOURCE_DIR}/ext)
 
 include(GoogleTest)
 include_directories(${EXT_DIR}/googletest/googletest/include)
 
-add_executable(${TEST} ${TEST_SOURCES})
+add_executable(${BINARY} ${TEST_SOURCES})
 
 target_link_libraries(
-  ${TEST}
+  ${BINARY}
+  PUBLIC
+  ${CMAKE_PROJECT_NAME}_lib
   gtest
-  gtest_main
-)
-
-gtest_discover_tests(${TEST})
+  )
+  
+gtest_discover_tests(${BINARY})
