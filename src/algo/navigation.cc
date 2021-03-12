@@ -93,7 +93,7 @@ void navigation::dijkstra(int start_node, Coefficient Coe) {
 
 std::string navigation::route_output(int start_node, int end_node) {
     std::stack<int> sta;
-    std::string res = " \"";
+    std::string res = "\"";
     int node = end_node;
     while (route[node].to != -1) {
         sta.push(node);
