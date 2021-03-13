@@ -5,16 +5,15 @@
 #include <vector>
 #include "../model.h"
 #include "./path.h"
-class Building {
+class Building : public Model {
    private:
-    Id id;
-    std::string name;
-    std::vector<std::shared_ptr<Path>> connections;
+    // ids of the path connected
+    std::vector<Id> connections;
 
    public:
-    Building() = default;
-    Building(Id, std::string);
-    ~Building();
+    Building(std::string);
+    void connect(Id id);
+    std::vector<Id> get_connections();
 };
 
 #endif  // !MODEL_PHYSICAL_BUILDING_H

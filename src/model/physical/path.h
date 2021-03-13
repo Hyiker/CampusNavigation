@@ -4,16 +4,15 @@
 #include "../model.h"
 #include "./building.h"
 
-class Path {
+class Path : Model {
    private:
-    Id id;
     // the two building it connects
-    std::shared_ptr<Building> building1, building2;
+    Id model1_id, model2_id;
 
    public:
-    Path() = default;
-    Path(Id, std::shared_ptr<Building>, std::shared_ptr<Building>);
-    ~Path();
+    Path();
+    // return the model id if succeed else -1
+    Id connect(Id);
 };
 
 #endif  // !MODEL_PHYSICAL_PATH_H
