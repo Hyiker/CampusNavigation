@@ -20,10 +20,13 @@ class Model {
 
    protected:
     Model(std::string);
+    Model() = default;
 
    public:
-    // disabling default constructor and copying
-    Model() = delete;
+    void set_id(Id);
+    Id get_id();
+    void set_name(std::string);
+    std::string get_name();
 };
 
 class ModelHub {
