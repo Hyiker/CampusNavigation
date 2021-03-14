@@ -51,7 +51,7 @@ class navigation {
    public:
     navigation();
     explicit navigation(int node_size = 20, int edge_size = 200);
-    void add_edge(int start_node, int end_node, double weight, bool bicycle_passable, double congestion_rate);
+    void add_edge(int start_node, int end_node, double weight, bool bicycle_passable = 1, double congestion_rate = 1);
     std::string get_route();
     double navigate(int start_node, int end_node);
     /**
