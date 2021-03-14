@@ -3,9 +3,9 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include "../model.h"
-#include "./path.h"
-class Building : public Model {
+#include "model/physical/path.h"
+#include "model/physical/physical_model.h"
+class Building : public PhysicalModel {
    private:
     // ids of the path connected
     std::vector<Id> connections;
