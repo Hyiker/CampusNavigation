@@ -30,19 +30,21 @@ TEST_F(Env, modelhub_path_test) {
 }
 TEST_F(Env, connection_test) {
     string building_names[5] = {"学一", "教室食堂一", "教师食堂二", "雁南", "雁北"};
+    shared_ptr<Building> buildings[5];
     for (int i = 0; i < 5; i++) {
         auto b1 = std::make_shared<Building>(building_names[i]);
         auto nid = mh.add(b1);
         b1->set_id(nid);
+        buildings[i] = b1;
     }
 
     auto p = static_pointer_cast<Path>(mh.get(pid));
-    ASSERT_EQ(p->connect(2u), 2u);
-    ASSERT_EQ(p->connect(1u), 1u);
+    ASSERT_EQ(p->connect_to(buildings[2u]), 3u);
+    ASSERT_EQ(p->connect_to(buildings[1u]), 2u);
     auto x1 = static_pointer_cast<Building>(mh.get(1u));
     auto j1 = static_pointer_cast<Building>(mh.get(2u));
-    x1->connect(p->get_id());
-    j1->connect(p->get_id());
-    auto con = x1->get_connections();
-    ASSERT_EQ(mh.get(con)[0]->get_id(), p->get_id());
+    x1->connect_to(p);
+    j1->connect_to(p);
+    auto con = *(x1->get_connections().begin());
+    ASSERT_EQ(mh.get(con)->get_id(), p->get_id());
 }

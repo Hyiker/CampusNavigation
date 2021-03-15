@@ -1,10 +1,16 @@
 #include "model/physical/building.h"
-using std::string, std::vector;
+using std::shared_ptr, std::string, std::unordered_set;
 Building::Building(string name) : PhysicalModel{name} {
 }
-void Building::connect(Id path_id) {
-    this->connections.push_back(path_id);
+Id Building::connect_to(std::shared_ptr<PhysicalModel> pm) {
+    if (auto path = std::static_pointer_cast<Path>(pm)) {
+        this->connections.insert(path->get_id());
+        return path->get_id();
+    } else {
+        // TODO: throw error here
+        return -1;
+    }
 }
-vector<Id> Building::get_connections() {
+unordered_set<Id>& Building::get_connections() {
     return this->connections;
 }
