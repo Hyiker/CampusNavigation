@@ -7,7 +7,6 @@
 #include <vector>
 // id for each model (include path and buildings)
 using Id = int32_t;
-static const Id DEFAULT_ID_BEGIN = 0;
 // father class of both logical & physical models
 // store the basic info of models
 // all the models are stored in one "Hub" with a HashMap(unordered_map)
@@ -29,22 +28,4 @@ class Model {
     std::string get_name();
 };
 
-class ModelHub {
-   private:
-    std::unordered_map<Id, std::shared_ptr<Model>> model_map;
-    Id gen;
-    Id generate_id();
-
-   public:
-    ModelHub(Id = DEFAULT_ID_BEGIN);
-    Id add(std::shared_ptr<Model>);
-    // return the removed id if exists
-    // or -1 if failed to find or remove the model
-    Id remove(Id);
-    // true if hub has the corresponding model
-    bool have(Id);
-    std::shared_ptr<Model> get(Id);
-    // the sequence is proved to be the same
-    std::vector<std::shared_ptr<Model>> get(std::vector<Id>&);
-};
 #endif  // !MODEL_H

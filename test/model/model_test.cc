@@ -1,5 +1,6 @@
 #include "model/model.h"
 #include <gtest/gtest.h>
+#include "model/model_hub.h"
 #include "model/physical/building.h"
 #include "model/physical/path.h"
 using namespace std;
@@ -39,12 +40,13 @@ TEST_F(Env, connection_test) {
     }
 
     auto p = static_pointer_cast<Path>(mh.get(pid));
-    ASSERT_EQ(p->connect_to(buildings[2u]), 3u);
-    ASSERT_EQ(p->connect_to(buildings[1u]), 2u);
-    auto x1 = static_pointer_cast<Building>(mh.get(1u));
+    auto con1 = mh.connect(buildings[2u], p);
+    auto con2 = mh.connect(buildings[1u], p);
+    ASSERT_EQ(con1.first, 3u);
+    ASSERT_EQ(con2.first, 2u);
+    auto x1 = static_pointer_cast<Building>(mh.get(3u));
     auto j1 = static_pointer_cast<Building>(mh.get(2u));
-    x1->connect_to(p);
-    j1->connect_to(p);
+    // get the first connection path in x1
     auto con = *(x1->get_connections().begin());
     ASSERT_EQ(mh.get(con)->get_id(), p->get_id());
 }
