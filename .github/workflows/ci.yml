@@ -1,0 +1,20 @@
+name: Campus Navigation CI
+on: [push, pull_request]
+  branches:
+    - master
+    - github_ci
+jobs:
+  build-and-test:
+    name: Building adn testing the cmake project
+    runs-on: ubuntu-latest
+    steps:
+      - name: CMake setup
+      run: |
+        mkdir build
+        (cd build; cmake -DCMAKE_BUILD_TYPE=Release ..)
+      - name: Make the Project
+      run: |
+        (cd build; make)
+      - name: Run unit tests
+      run: |
+        ./build/test/CampusNavigation_test
