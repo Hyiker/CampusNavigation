@@ -10,9 +10,11 @@ class Building : public PhysicalModel {
     // ids of the path connected
     std::unordered_set<Id> connections;
 
+   protected:
+    Id connect_to(std::shared_ptr<PhysicalModel>);
+
    public:
     Building(std::string);
-    Id connect_to(std::shared_ptr<PhysicalModel>);
     std::unordered_set<Id>& get_connections();
 };
 

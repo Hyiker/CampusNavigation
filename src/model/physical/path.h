@@ -11,10 +11,12 @@ class Path : public PhysicalModel {
     Id model1_id = -1, model2_id = -1;
     Distance distance;
 
-   public:
-    Path();
+   protected:
     // return the model id if succeed else -1
     Id connect_to(std::shared_ptr<PhysicalModel>);
+
+   public:
+    Path();
     Distance get_distance();
 };
 
