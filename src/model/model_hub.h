@@ -4,6 +4,7 @@
 #include "model/model.h"
 #include "model/physical/physical_model.h"
 constexpr Id DEFAULT_ID_BEGIN = 0;
+class PhysicalModel;
 class ModelHub {
    private:
     std::unordered_map<Id, std::shared_ptr<Model>> model_map;
