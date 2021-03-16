@@ -1,0 +1,28 @@
+name: Campus Navigation CI
+
+
+on: 
+  push:
+    branches:
+      - master
+      - feat/github_ci
+  pull_request:
+    branches:
+      - master
+jobs:
+  build-and-test:
+    name: Building and testing the cmake project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+      - name: CMake setup
+        run: |
+         mkdir build
+         cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
+      - name: Make the Project
+        run: |
+          cd build && make
+      - name: Run unit tests
+        run: |
+          cd build && test/CampusNavigation_test

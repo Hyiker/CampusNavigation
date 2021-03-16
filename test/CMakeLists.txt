@@ -35,6 +35,7 @@ set(EXT_DIR ${PROJECT_SOURCE_DIR}/ext)
 include(GoogleTest)
 include_directories(${EXT_DIR}/googletest/googletest/include)
 
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/test_data DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(${BINARY} ${TEST_SOURCES})
 
 target_link_libraries(
@@ -42,6 +43,7 @@ target_link_libraries(
   PUBLIC
   ${CMAKE_PROJECT_NAME}_lib
   gtest
+  stdc++fs
   )
   
 gtest_discover_tests(${BINARY})
