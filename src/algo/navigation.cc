@@ -4,6 +4,7 @@
 #include <iostream>
 #include <queue>
 #include <stack>
+#include <cmath>
 
 navigation::navigation() : navigation(20, 200) {
 }

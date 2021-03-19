@@ -7,6 +7,11 @@ project(CampusNavigation VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if (APPLE)
+    set(CMAKE_C_COMPILER "/usr/local/bin/gcc-10")
+    set(CMAKE_CXX_COMPILER "/usr/local/bin/g++-10")
+endif(APPLE)
+
 include_directories(src)
 add_subdirectory(src)
 
