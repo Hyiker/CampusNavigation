@@ -13,11 +13,11 @@ class Path : public PhysicalModel {
 
    protected:
     Path(std::string);
+    // return the model id if succeed else -1
+    Id connect_to(std::shared_ptr<PhysicalModel>);
 
    public:
     Path();
-    // return the model id if succeed else -1
-    Id connect_to(std::shared_ptr<PhysicalModel>);
     Distance get_distance();
 };
 
