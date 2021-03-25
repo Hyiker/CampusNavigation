@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <chrono>
 // id for each model (include path and buildings)
 using Id = int32_t;
 static const Id DEFAULT_ID_BEGIN = 0;
