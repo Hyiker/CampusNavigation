@@ -18,6 +18,9 @@ class Path : public PhysicalModel {
     Path();
     // return the model id if succeed else -1
     Id connect_to(std::shared_ptr<PhysicalModel>);
+
+   public:
+    Path();
     Distance get_distance();
 };
 
