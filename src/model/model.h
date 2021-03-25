@@ -8,6 +8,7 @@
 // id for each model (include path and buildings)
 using Id = int32_t;
 static const Id DEFAULT_ID_BEGIN = 0;
+using StdTime = std::chrono::time_point<std::chrono::system_clock>;
 // father class of both logical & physical models
 // store the basic info of models
 // all the models are stored in one "Hub" with a HashMap(unordered_map)

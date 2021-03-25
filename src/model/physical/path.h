@@ -11,6 +11,9 @@ class Path : public PhysicalModel {
     Id model1_id = -1, model2_id = -1;
     Distance distance;
 
+   protected:
+    Path(std::string);
+
    public:
     Path();
     // return the model id if succeed else -1
