@@ -1,5 +1,6 @@
 #include "model/model.h"
 #include <gtest/gtest.h>
+#include "model/logical/course.h"
 #include "model/model_hub.h"
 #include "model/physical/building.h"
 #include "model/physical/path.h"
@@ -49,4 +50,12 @@ TEST_F(Env, connection_test) {
     // get the first connection path in x1
     auto con = *(x1->get_connections().begin());
     ASSERT_EQ(mh.get(con)->get_id(), p->get_id());
+}
+
+TEST(courseTest, testCourseParser) {
+    string course_name = "2019211318班-数据结构课程设计-周四8:00";
+    Course testCourse(course_name);
+    EXPECT_EQ(testCourse.Class, "2019211318");
+    EXPECT_EQ(testCourse.courseName, "数据结构课程设计");
+    EXPECT_EQ(testCourse.time, "周四8:00");
 }
