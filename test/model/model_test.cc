@@ -1,9 +1,11 @@
 #include "model/model.h"
 #include <gtest/gtest.h>
-#include "model/logical/course.h"
+#include "model/logical/courseHub.h"
+#include "model/logical/logical_model.h"
 #include "model/model_hub.h"
 #include "model/physical/building.h"
 #include "model/physical/path.h"
+
 using namespace std;
 class Env : public ::testing::Test {
    protected:
@@ -53,9 +55,20 @@ TEST_F(Env, connection_test) {
 }
 
 TEST(courseTest, testCourseParser) {
-    string course_name = "2019211318班-数据结构课程设计-周四8:00";
-    Course testCourse(course_name);
-    EXPECT_EQ(testCourse.Class, "2019211318");
-    EXPECT_EQ(testCourse.courseName, "数据结构课程设计");
-    EXPECT_EQ(testCourse.time, "周四8:00");
+    string course_names[5] = {"2019211318班-数据结构课程设计-周四8:00", "2019211318班-数据结构课程设计-周四9:00",
+                              "2019211318班-数据结构课程设计-周四10:00", "2019211318班-数据结构课程设计-周四11:00",
+                              "2019211318班-数据结构课程设计-周四12:00"};
+    Id physicalId[5] = {2, 4, 6, 7, 8};
+    shared_ptr<Course> courses[5];
+    CourseHub pornhub;
+    for (auto i = 0; i < 5; i++) {
+        auto a1 = std::make_shared<Course>(course_names[i]);
+        pornhub.add(a1, physicalId[i]);
+    }
+    auto test = std::make_shared<Course>("2019211318班-数据结构课程设计-周四10:00");
+    EXPECT_EQ(pornhub.getPhysicalId(test), 6) << "the right value";
+    EXPECT_EQ(pornhub.remove(test), 6) << "the right value";
+    test = std::make_shared<Course>("2019211318班-数据结构课程设计-周四10:00");
+    EXPECT_EQ(pornhub.getPhysicalId(test), -1);
+    EXPECT_EQ(pornhub.remove(test), -1);
 }
