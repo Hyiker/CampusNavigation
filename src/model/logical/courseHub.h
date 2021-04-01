@@ -2,6 +2,7 @@
 #define COURSE_HUB_H
 #include <fstream>
 #include <memory>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -11,7 +12,7 @@ using std::string;
 
 class Course {
    protected:
-    string Class;
+    string _class;
     string time;
     string courseName;
 
@@ -29,8 +30,11 @@ class CourseHub : public LogicalModel {
 
    public:
     Id add(std::shared_ptr<Course>, Id);
-    Id remove(std::shared_ptr<Course>);
-    std::shared_ptr<Course> have(std::shared_ptr<Course>);
+    std::shared_ptr<Course> add(string, Id);
+    int remove(std::shared_ptr<Course>);
+    int remove(string);
+    bool have(std::shared_ptr<Course>);
+    std::unordered_map<std::shared_ptr<Course>, Id> search(string);
     Id getPhysicalId(std::shared_ptr<Course>);
     CourseHub();
     ~CourseHub();
