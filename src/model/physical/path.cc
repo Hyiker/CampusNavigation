@@ -1,6 +1,8 @@
 #include "model/physical/path.h"
-using std::shared_ptr;
-Path::Path() : PhysicalModel{""}, model1_id{-1}, model2_id{-1} {
+using std::shared_ptr, std::string;
+Path::Path(string name) : PhysicalModel{""}, model1_id{-1}, model2_id{-1} {
+}
+Path::Path() : Path{""} {
 }
 Id Path::connect_to(shared_ptr<PhysicalModel> pm) {
     if (this->model1_id == -1) {
