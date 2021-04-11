@@ -1,5 +1,6 @@
-#include "model/model.h"
 #include <gtest/gtest.h>
+#include "error/errors.hpp"
+#include "model/model.h"
 #include "model/model_hub.h"
 #include "model/physical/building.h"
 #include "model/physical/path.h"
@@ -49,4 +50,13 @@ TEST_F(Env, connection_test) {
     // get the first connection path in x1
     auto con = *(x1->get_connections().begin());
     ASSERT_EQ(mh.get(con)->get_id(), p->get_id());
+}
+TEST_F(Env, invalid_id_exception_test) {
+    bool iie = false;
+    try {
+        mh.get(114515);
+    } catch (InvalidIdException& e) {
+        iie = true;
+    }
+    EXPECT_TRUE(iie);
 }

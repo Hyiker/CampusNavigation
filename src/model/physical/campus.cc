@@ -1,4 +1,5 @@
 #include "model/physical/campus.h"
+#include "error/errors.hpp"
 #include "model/physical/path.h"
 using std::shared_ptr;
 Id Campus::connect_to(shared_ptr<PhysicalModel> pm) {
@@ -9,7 +10,7 @@ Id Campus::connect_to(shared_ptr<PhysicalModel> pm) {
             return pm->get_id();
         }
     } else {
-        // TODO: throws an error
+        throw InvalidTypeException(std::string("连接的目标必须是Path"));
         return -1;
     }
 }

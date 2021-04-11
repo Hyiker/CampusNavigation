@@ -1,4 +1,6 @@
 #include "model/model_hub.h"
+#include <boost/format.hpp>
+#include "error/errors.hpp"
 using std::shared_ptr, std::vector, std::pair, std::make_pair;
 Id ModelHub::generate_id() {
     return (this->gen)++;
@@ -23,8 +25,7 @@ bool ModelHub::have(Id id) {
 }
 shared_ptr<Model> ModelHub::get(Id id) {
     if (this->model_map.count(id) == 0) {
-        // TODO: throws error here
-        return nullptr;
+        throw InvalidIdException(boost::str(boost::format("未找到id%1%对应的模型") % id));
     }
     return this->model_map[id];
 }
