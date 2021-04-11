@@ -10,10 +10,17 @@ on:
     branches:
       - master
 jobs:
+  boost-setup:
+    0
   build-and-test:
     name: Building and testing the cmake project
     runs-on: ubuntu-latest
     steps:
+      - name: Install boost
+        uses: MarkusJx/install-boost@v1.0.1
+        id: install-boost
+        with:
+          boost_version: 1.75.0
       - name: Checkout repo
         uses: actions/checkout@v2
       - name: CMake setup
