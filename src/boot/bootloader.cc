@@ -2,6 +2,7 @@
 #include <boost/algorithm/string.hpp>
 #include <fstream>
 #include <string>
+#include "logger/logger.h"
 #include "model/physical/path.h"
 using namespace std;
 static void parse_model(shared_ptr<ModelHub> hub, string& line) {
@@ -36,8 +37,11 @@ shared_ptr<ModelHub> BootLoader::load_model_hub(const string& filename) {
     ifstream ifs(filename);
     string line;
     while (!ifs.eof()) {
+        Logger::debug("reading a line");
         getline(ifs, line);
-        parse_model(hub, line);
+        if (line.length() > 0) {
+            parse_model(hub, line);
+        }
     }
     return hub;
 }
