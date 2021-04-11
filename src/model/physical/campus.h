@@ -9,6 +9,8 @@ class Campus : public PhysicalModel {
     std::unordered_set<Id> connections;
 
    public:
+    Campus() = default;
+    void init(Id, std::vector<std::string>&) override;
     // could only connect to paths
     Id connect_to(std::shared_ptr<PhysicalModel>);
 };

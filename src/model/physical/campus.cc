@@ -13,3 +13,12 @@ Id Campus::connect_to(shared_ptr<PhysicalModel> pm) {
         return -1;
     }
 }
+
+void Campus::init(Id id, std::vector<std::string>& params) {
+    this->set_id(id);
+    if (params.size() < 3) {
+        // TODO: throw error here
+        return;
+    }
+    this->set_name(params[2]);
+}
