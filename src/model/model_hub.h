@@ -1,18 +1,19 @@
 #ifndef MODEL_HUB_H
 #define MODEL_HUB_H
 #include <utility>
+#include "logger/logger.h"
 #include "model/model.h"
 #include "model/physical/physical_model.h"
-constexpr Id DEFAULT_ID_BEGIN = 0;
 class PhysicalModel;
 class ModelHub {
    private:
     std::unordered_map<Id, std::shared_ptr<Model>> model_map;
-    Id gen;
-    Id generate_id();
 
    public:
-    ModelHub(Id = DEFAULT_ID_BEGIN);
+    ModelHub() = default;
+    // construct a model ptr with specified type and param list
+    // then add it to the model hub, connecting edges
+    std::shared_ptr<Model> construct_with_list(std::string&, std::vector<std::string>&);
     Id add(std::shared_ptr<Model>);
     // return the removed id if exists
     // or -1 if failed to find or remove the model
