@@ -1,16 +1,43 @@
 #include "model/model_hub.h"
 #include <boost/format.hpp>
+#include "model/physical/building.h"
+#include "model/physical/campus.h"
+#include "model/physical/path.h"
+#include "model/physical/transport.h"
 #include "error/errors.hpp"
-using std::shared_ptr, std::vector, std::pair, std::make_pair;
-Id ModelHub::generate_id() {
-    return (this->gen)++;
-}
-ModelHub::ModelHub(Id begin) : gen(begin) {
+using namespace std;
+
+shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<string>& params) {
+    if (params.size() < 2) {
+        // TODO: throw error here
+        return nullptr;
+    }
+
+    // TODO: implement me
+    if (Logger::get_instance() != nullptr) {
+        auto fmt = boost::str(boost::format("adding %1% to hub") % model_type);
+        Logger::debug(fmt);
+    }
+    Id id = stoi(params[0]);
+
+    shared_ptr<Model> model_ptr;
+    if (model_type == BUILDING_STR) {
+        model_ptr = make_shared<Building>();
+    } else if (model_type == CAMPUS_STR) {
+        model_ptr = make_shared<Campus>();
+    } else if (model_type == PATH_STR) {
+        model_ptr = make_shared<Path>();
+    } else if (model_type == TRANSPORT_STR) {
+        model_ptr = make_shared<Transport>();
+    }
+
+    model_ptr->init(id, params);
+
+    return model_ptr;
 }
 Id ModelHub::add(shared_ptr<Model> model_ptr) {
-    Id id = this->generate_id();
-    this->model_map.insert({id, model_ptr});
-    return id;
+    this->model_map.insert({model_ptr->get_id(), model_ptr});
+    return model_ptr->get_id();
 }
 Id ModelHub::remove(Id id) {
     if (this->model_map.count(id) == 0) {

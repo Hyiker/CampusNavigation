@@ -15,7 +15,7 @@ class Logger {
     LogLevel log_level;
     static Logger* instance;
 
-    void write_to_stream(std::string&);
+    void write_to_stream(const std::string&);
 
    public:
     // filename could be a path, stdout or stderr
@@ -23,10 +23,10 @@ class Logger {
     static void init(std::string, FileMode, LogLevel);
     static Logger* get_instance();
     // 4 log mode with increasing severity
-    static void info(std::string&);
-    static void debug(std::string&);
-    static void warn(std::string&);
-    static void error(std::string&);
+    static void info(const std::string&);
+    static void debug(const std::string&);
+    static void warn(const std::string&);
+    static void error(const std::string&);
     ~Logger();
 };
 

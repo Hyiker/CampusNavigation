@@ -46,7 +46,7 @@ Logger::~Logger() {
         Logger::instance = nullptr;
     }
 }
-void Logger::write_to_stream(string& message) {
+void Logger::write_to_stream(const string& message) {
     auto stream = this->out.get();
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
@@ -87,25 +87,25 @@ inline static bool can_output(LogLevel instance_level, LogLevel msg_level) {
 }
 
 // 4 log mode with increasing severity
-void Logger::info(string& msg) {
+void Logger::info(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::INFO)) {
         Logger::get_instance()->write_to_stream(msg);
     }
 }
-void Logger::debug(string& msg) {
+void Logger::debug(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::DEBUG)) {
         Logger::get_instance()->write_to_stream(msg);
     }
 }
-void Logger::warn(string& msg) {
+void Logger::warn(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::WARN)) {
         Logger::get_instance()->write_to_stream(msg);
     }
 }
-void Logger::error(string& msg) {
+void Logger::error(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::ERROR)) {
         Logger::get_instance()->write_to_stream(msg);

@@ -14,6 +14,10 @@ class Building : public PhysicalModel {
     Id connect_to(std::shared_ptr<PhysicalModel>);
 
    public:
+    Building() = default;
+    // building param format:
+    // id,type,name
+    void init(Id, std::vector<std::string>&) override;
     Building(std::string);
     std::unordered_set<Id>& get_connections();
 };
