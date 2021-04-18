@@ -1,7 +1,7 @@
 #ifndef COURSE_H
 #define COURSE_H
 #include <algorithm>
-#include <sstream>
+#include <boost/algorithm/string.hpp>
 #include <string>
 #include <vector>
 #include "logical_model.h"
@@ -13,6 +13,7 @@ class Course : public LogicalModel {
     string _class;
     string time;
     string courseName;
+    Id physicalId;
 
     friend class CourseHub;
 

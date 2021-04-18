@@ -1,4 +1,4 @@
-#include "courseHub.h"
+#include "course_hub.h"
 
 CourseHub::CourseHub() {
 }

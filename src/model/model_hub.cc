@@ -1,10 +1,12 @@
 #include "model/model_hub.h"
 #include <boost/format.hpp>
+#include <iostream>
+#include "error/errors.hpp"
+#include "model/logical/course.h"
 #include "model/physical/building.h"
 #include "model/physical/campus.h"
 #include "model/physical/path.h"
 #include "model/physical/transport.h"
-#include "error/errors.hpp"
 using namespace std;
 
 shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<string>& params) {
@@ -29,9 +31,12 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
         model_ptr = make_shared<Path>();
     } else if (model_type == TRANSPORT_STR) {
         model_ptr = make_shared<Transport>();
+    } else if (model_type == COURSE_STR) {
+        model_ptr = make_shared<Course>();
     }
 
     model_ptr->init(id, params);
+    this->add(model_ptr);
 
     return model_ptr;
 }
@@ -68,4 +73,13 @@ std::pair<Id, Id> ModelHub::connect(std::shared_ptr<PhysicalModel> pm1, std::sha
     pm1->connect_to(pm2);
     pm2->connect_to(pm1);
     return make_pair(pm1->get_id(), pm2->get_id());
+}
+
+Id ModelHub::search_name(string name) {
+    for (auto it = this->model_map.begin(); it != this->model_map.end(); it++) {
+        if (it->second->get_name() == name) {
+            return it->first;
+        }
+    }
+    return -1;
 }

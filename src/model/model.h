@@ -11,7 +11,7 @@ using Id = int32_t;
 using StdTime = std::chrono::time_point<std::chrono::system_clock>;
 
 const std::string BUILDING_STR = "building", CAMPUS_STR = "campus", PATH_STR = "path", SERVICE_STR = "service",
-                  TRANSPORT_STR = "transport";
+                  TRANSPORT_STR = "transport", COURSE_STR = "course";
 
 // father class of both logical & physical models
 // store the basic info of models
