@@ -2,9 +2,10 @@
 #define MODEL_HUB_H
 #include <utility>
 #include "logger/logger.h"
-#include "model/logical/course.h"
+
 #include "model/model.h"
 #include "model/physical/physical_model.h"
+#include "model/logical/logical_model.h"
 class PhysicalModel;
 class ModelHub {
    private:
@@ -26,6 +27,6 @@ class ModelHub {
     std::vector<std::shared_ptr<Model>> get(std::vector<Id>&);
     // connect two Physical Models
     std::pair<Id, Id> connect(std::shared_ptr<PhysicalModel>, std::shared_ptr<PhysicalModel>);
-    Id search_name(std::string);
+    std::vector<std::pair<Id, std::shared_ptr<Model>>> search_name(std::string);
 };
 #endif

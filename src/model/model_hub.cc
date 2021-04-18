@@ -2,10 +2,10 @@
 #include <boost/format.hpp>
 #include <iostream>
 #include "error/errors.hpp"
-#include "model/logical/course.h"
 #include "model/physical/building.h"
 #include "model/physical/campus.h"
 #include "model/physical/path.h"
+#include "model/logical/course.h"
 #include "model/physical/transport.h"
 using namespace std;
 
@@ -75,11 +75,13 @@ std::pair<Id, Id> ModelHub::connect(std::shared_ptr<PhysicalModel> pm1, std::sha
     return make_pair(pm1->get_id(), pm2->get_id());
 }
 
-Id ModelHub::search_name(string name) {
+std::vector<std::pair<Id, std::shared_ptr<Model>>> ModelHub::search_name(string name) {
+    std::vector<std::pair<Id, std::shared_ptr<Model>>> ret;
     for (auto it = this->model_map.begin(); it != this->model_map.end(); it++) {
-        if (it->second->get_name() == name) {
-            return it->first;
+        if (it->second->get_name().find(name) != -1) {
+            ret.push_back(*it);
+            continue;
         }
     }
-    return -1;
+    return ret;
 }

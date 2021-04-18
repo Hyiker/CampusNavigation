@@ -3,7 +3,6 @@
 #include <memory>
 #include "model/model.h"
 #include "model/model_hub.h"
-#include "model/physical/physical_model.h"
 
 class LogicalModel : public Model {
    protected:
