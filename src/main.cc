@@ -11,9 +11,9 @@ int main(int argc, const char** argv) {
         Logger::error("没有输入模型文件路径");
     }*/
     std::shared_ptr<ModelHub> modelHub = BootLoader::load_model_hub(path);
-    auto test = modelHub->search_name("2019211318班-数据结构课程设计");
+    auto test = modelHub->navigate(0, 7, 1);
     for (auto it = test.begin(); it != test.end(); it++) {
-        std::cout << std::static_pointer_cast<Course>(it->second)->getPhysicalId() << std::endl;
+        std::cout << (*it)->get_id() << ' ';
     }
 
     return 0;

@@ -40,18 +40,18 @@ class navigation {
     std::vector<bool> vis;
     std::vector<double> dis;
     std::vector<Path> route;
-    std::string route_cache;
+    std::vector<int> route_cache;
     bool under_navigating;
 
     void dijkstra(int start_node);
     template <typename Coefficient>
     void dijkstra(int start_node, Coefficient Coe);
-    std::string route_output(int start_node, int end_node);
+    std::vector<int> route_output(int start_node, int end_node);
 
    public:
     explicit navigation(int node_size = 20, int edge_size = 200);
     void add_edge(int start_node, int end_node, double weight, bool bicycle_passable = 1, double congestion_rate = 1);
-    std::string get_route();
+    std::vector<int> get_route();
     double navigate(int start_node, int end_node);
     /**
      *
@@ -74,7 +74,7 @@ class navigation {
     template <typename First, typename Second, typename... Pack>
     double navigate_multi_joint(First first, Second second, Pack... params) {
         if (!under_navigating) {
-            route_cache = "";
+            route_cache.clear();
         }
         under_navigating = true;
         static_assert(std::is_same<First, int>::value && std::is_same<Second, int>::value, "Integer needed!");

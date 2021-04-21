@@ -4,7 +4,7 @@
 #include <utility>
 #include "model/physical/physical_model.h"
 
-using Distance = uint32_t;
+using Distance = double;
 class PhysicalPath : public PhysicalModel {
    private:
    protected:

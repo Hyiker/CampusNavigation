@@ -28,7 +28,7 @@ void PhysicalPath::init(Id id, std::vector<std::string>& params) {
     this->set_name(params[2]);
     this->model1_id = stoi(params[3]);
     this->model2_id = stoi(params[4]);
-    this->distance = stoi(params[5]);
+    this->distance = stod(params[5]);
 }
 
 pair<Id, Id> PhysicalPath::get_connections() {

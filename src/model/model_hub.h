@@ -7,6 +7,7 @@
 #include "model/logical/logical_model.h"
 #include "model/model.h"
 #include "model/physical/physical_model.h"
+using Distance = double;
 class PhysicalModel;
 class ModelHub {
    private:
@@ -30,6 +31,7 @@ class ModelHub {
     // connect two Physical Models
     std::pair<Id, Id> connect(std::shared_ptr<PhysicalModel>, std::shared_ptr<PhysicalModel>);
     std::vector<std::pair<Id, std::shared_ptr<Model>>> search_name(std::string);
-    std::vector<std::pair<std::shared_ptr<Model>, Distance>> navigate(Id, Id);
+    std::vector<std::shared_ptr<Model>> navigate(Id, Id, int);
+    std::shared_ptr<Model> find_edge(Id, Id);
 };
 #endif

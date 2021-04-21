@@ -20,6 +20,7 @@ inline int read() {
     return flag ? ans : ~ans + 1;
 }
 #define read read()
+/*
 
 TEST(NavigationFunctionalTest, BetweenBuildingNavigation) {
     std::ifstream ifs("test/test_data/algo/algo_functional_test.in");
@@ -110,3 +111,4 @@ TEST_P(LargeDataParamTest, DijkstraTest) {
         }
     }
 }
+*/
