@@ -35,11 +35,11 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
         model_ptr = make_shared<Course>();
     }
 
+    model_ptr->init(id, params);
     if (auto path = static_pointer_cast<PhysicalPath>(model_ptr)) {
         nav.add_edge(path->get_connections().first, path->get_connections().second, path->get_distance());
     }
 
-    model_ptr->init(id, params);
     this->add(model_ptr);
 
     return model_ptr;

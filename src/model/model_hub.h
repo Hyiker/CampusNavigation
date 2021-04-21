@@ -30,5 +30,6 @@ class ModelHub {
     // connect two Physical Models
     std::pair<Id, Id> connect(std::shared_ptr<PhysicalModel>, std::shared_ptr<PhysicalModel>);
     std::vector<std::pair<Id, std::shared_ptr<Model>>> search_name(std::string);
+    std::vector<std::pair<std::shared_ptr<Model>, Distance>> navigate(Id, Id);
 };
 #endif
