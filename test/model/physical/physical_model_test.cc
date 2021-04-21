@@ -8,10 +8,10 @@ using namespace std;
 class Env : public ::testing::Test {
    protected:
     virtual void SetUp() {
-        auto b1 = std::make_shared<Path>();
+        auto b1 = std::make_shared<PhysicalPath>();
         b1->set_id(11);
         mh.add(b1);
-        auto t = std::static_pointer_cast<Path>(mh.get(11));
+        auto t = std::static_pointer_cast<PhysicalPath>(mh.get(11));
         pid = b1->get_id();
     }
     ModelHub mh;
@@ -29,7 +29,7 @@ TEST_F(Env, modelhub_building_test) {
     }
 }
 TEST_F(Env, modelhub_path_test) {
-    auto b1 = std::make_shared<Path>();
+    auto b1 = std::make_shared<PhysicalPath>();
     b1->set_id(45);
     mh.add(b1);
 }
@@ -43,7 +43,7 @@ TEST_F(Env, connection_test) {
         buildings[i] = b1;
     }
 
-    auto p = static_pointer_cast<Path>(mh.get(pid));
+    auto p = static_pointer_cast<PhysicalPath>(mh.get(pid));
     auto con1 = mh.connect(buildings[2], p);
     auto con2 = mh.connect(buildings[1], p);
     ASSERT_EQ(con1.first, 2u);

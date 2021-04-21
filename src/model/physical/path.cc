@@ -1,10 +1,11 @@
 #include "model/physical/path.h"
+#include "model/physical/building.h"
 using namespace std;
-Path::Path(string name) : PhysicalModel{""}, model1_id{-1}, model2_id{-1} {
+PhysicalPath::PhysicalPath(string name) : PhysicalModel{""}, model1_id{-1}, model2_id{-1} {
 }
-Path::Path() : Path{""} {
+PhysicalPath::PhysicalPath() : PhysicalPath{""} {
 }
-Id Path::connect_to(shared_ptr<PhysicalModel> pm) {
+Id PhysicalPath::connect_to(shared_ptr<PhysicalModel> pm) {
     if (this->model1_id == -1) {
         return this->model1_id = pm->get_id();
     } else if (this->model2_id == -1) {
@@ -13,11 +14,11 @@ Id Path::connect_to(shared_ptr<PhysicalModel> pm) {
 
     return -1;
 }
-Distance Path::get_distance() {
+Distance PhysicalPath::get_distance() {
     return this->distance;
 }
 
-void Path::init(Id id, std::vector<std::string>& params) {
+void PhysicalPath::init(Id id, std::vector<std::string>& params) {
     // id,type,name,id1,id2,distance
     this->set_id(id);
     if (params.size() < 6) {
@@ -30,6 +31,6 @@ void Path::init(Id id, std::vector<std::string>& params) {
     this->distance = stoi(params[5]);
 }
 
-pair<Id, Id> Path::get_connections() {
+pair<Id, Id> PhysicalPath::get_connections() {
     return make_pair(this->model1_id, this->model2_id);
 }

@@ -2,7 +2,7 @@
 #define TRANSPORT_H
 #include <chrono>
 #include "model/physical/path.h"
-class Transport : public Path {
+class Transport : public PhysicalPath {
    protected:
     StdTime from, to;
     // speed scale for the transport

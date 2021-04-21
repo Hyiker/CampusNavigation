@@ -1,13 +1,10 @@
 #include "navigation.h"
 #include <algorithm>
 #include <cfloat>
+#include <cmath>
 #include <iostream>
 #include <queue>
 #include <stack>
-#include <cmath>
-
-navigation::navigation() : navigation(20, 200) {
-}
 
 navigation::navigation(int node_size, int edge_size)
     : node_size(node_size), edge_size(edge_size << 1), tot(0), under_navigating{false} {

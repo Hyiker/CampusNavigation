@@ -1,7 +1,7 @@
 #include "model/physical/transport.h"
 using std::string;
 Transport::Transport(string name, StdTime from, StdTime to, float speed)
-    : Path{name}, from{from}, to{to}, speed{speed} {
+    : PhysicalPath{name}, from{from}, to{to}, speed{speed} {
 }
 void Transport::init(Id id, std::vector<std::string>& params) {
     // id,type,name,id1,id2,distance,speed,from,to

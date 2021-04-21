@@ -2,10 +2,10 @@
 #include <boost/format.hpp>
 #include <iostream>
 #include "error/errors.hpp"
+#include "model/logical/course.h"
 #include "model/physical/building.h"
 #include "model/physical/campus.h"
 #include "model/physical/path.h"
-#include "model/logical/course.h"
 #include "model/physical/transport.h"
 using namespace std;
 
@@ -28,11 +28,15 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
     } else if (model_type == CAMPUS_STR) {
         model_ptr = make_shared<Campus>();
     } else if (model_type == PATH_STR) {
-        model_ptr = make_shared<Path>();
+        model_ptr = make_shared<PhysicalPath>();
     } else if (model_type == TRANSPORT_STR) {
         model_ptr = make_shared<Transport>();
     } else if (model_type == COURSE_STR) {
         model_ptr = make_shared<Course>();
+    }
+
+    if (auto path = static_pointer_cast<PhysicalPath>(model_ptr)) {
+        nav.add_edge(path->get_connections().first, path->get_connections().second, path->get_distance());
     }
 
     model_ptr->init(id, params);

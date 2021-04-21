@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 #include <unordered_set>
-#include "model/physical/path.h"
 #include "model/physical/physical_model.h"
 class Building : public PhysicalModel {
    private:

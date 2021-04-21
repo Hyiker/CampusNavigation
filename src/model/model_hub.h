@@ -3,13 +3,15 @@
 #include <utility>
 #include "logger/logger.h"
 
+#include "algo/navigation.h"
+#include "model/logical/logical_model.h"
 #include "model/model.h"
 #include "model/physical/physical_model.h"
-#include "model/logical/logical_model.h"
 class PhysicalModel;
 class ModelHub {
    private:
     std::unordered_map<Id, std::shared_ptr<Model>> model_map;
+    navigation nav;
 
    public:
     ModelHub() = default;
