@@ -2,10 +2,10 @@
 #include <boost/format.hpp>
 #include <iostream>
 #include "error/errors.hpp"
+#include "model/logical/course.h"
 #include "model/physical/building.h"
 #include "model/physical/campus.h"
 #include "model/physical/path.h"
-#include "model/logical/course.h"
 #include "model/physical/transport.h"
 using namespace std;
 
@@ -17,7 +17,7 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
 
     // TODO: implement me
     if (Logger::get_instance() != nullptr) {
-        auto fmt = boost::str(boost::format("adding %1% to hub") % model_type);
+        auto fmt = boost::str(boost::format("adding %1% to hub") % (model_type + params[0]));
         Logger::debug(fmt);
     }
     Id id = stoi(params[0]);
@@ -28,7 +28,7 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
     } else if (model_type == CAMPUS_STR) {
         model_ptr = make_shared<Campus>();
     } else if (model_type == PATH_STR) {
-        model_ptr = make_shared<Path>();
+        model_ptr = make_shared<PhysicalPath>();
     } else if (model_type == TRANSPORT_STR) {
         model_ptr = make_shared<Transport>();
     } else if (model_type == COURSE_STR) {
@@ -36,6 +36,12 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
     }
 
     model_ptr->init(id, params);
+
+    if (model_type == PATH_STR) {
+        auto path = static_pointer_cast<PhysicalPath>(model_ptr);
+        this->nav.add_edge(path->get_connections().first, path->get_connections().second, path->get_distance());
+    }
+
     this->add(model_ptr);
 
     return model_ptr;
@@ -83,5 +89,30 @@ std::vector<std::pair<Id, std::shared_ptr<Model>>> ModelHub::search_name(string 
             continue;
         }
     }
+    return ret;
+}
+
+std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2) {
+    for (auto it = this->model_map.begin(); it != this->model_map.end(); it++) {
+        if (auto path = std::static_pointer_cast<PhysicalPath>(it->second)) {
+            if (path->get_connections() == std::pair<Id, Id>(model_1, model_2)) {
+                return path;
+            }
+        }
+    }
+    return nullptr;
+}
+
+std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
+    std::vector<std::shared_ptr<Model>> ret;
+    this->nav.navigate(model_1, model_2, 1);
+    auto route = this->nav.get_route();
+    for (auto it = route.begin(); it + 1 != route.end(); it++) {
+        if (*it != *(it + 1)) {
+            ret.push_back(this->get(*it));
+            ret.push_back(this->find_edge(*it, *(it + 1)));
+        }
+    }
+    ret.push_back(this->get(route[route.size() - 1]));
     return ret;
 }

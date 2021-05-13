@@ -3,13 +3,16 @@
 #include <utility>
 #include "logger/logger.h"
 
+#include "algo/navigation.h"
+#include "model/logical/logical_model.h"
 #include "model/model.h"
 #include "model/physical/physical_model.h"
-#include "model/logical/logical_model.h"
+using Distance = double;
 class PhysicalModel;
 class ModelHub {
    private:
     std::unordered_map<Id, std::shared_ptr<Model>> model_map;
+    navigation nav;
 
    public:
     ModelHub() = default;
@@ -28,5 +31,7 @@ class ModelHub {
     // connect two Physical Models
     std::pair<Id, Id> connect(std::shared_ptr<PhysicalModel>, std::shared_ptr<PhysicalModel>);
     std::vector<std::pair<Id, std::shared_ptr<Model>>> search_name(std::string);
+    std::vector<std::shared_ptr<Model>> navigate(Id, Id, int);
+    std::shared_ptr<Model> find_edge(Id, Id);
 };
 #endif

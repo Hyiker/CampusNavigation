@@ -1,27 +1,38 @@
 #include "navigation.h"
 #include <algorithm>
 #include <cfloat>
+#include <cmath>
 #include <iostream>
 #include <queue>
 #include <stack>
-#include <cmath>
-
-navigation::navigation() : navigation(20, 200) {
-}
 
 navigation::navigation(int node_size, int edge_size)
     : node_size(node_size), edge_size(edge_size << 1), tot(0), under_navigating{false} {
-    head.resize(node_size);
-    edge.resize(edge_size << 1);
-    vis.resize(node_size);
-    dis.resize(node_size);
-    dis.assign(node_size, DBL_MAX);
-    route.resize(node_size);
-    route.assign(node_size, {-1, 0});
+    head.resize(this->node_size);
+    edge.resize(this->edge_size);
+    vis.resize(this->node_size);
+    dis.resize(this->node_size);
+    dis.assign(this->node_size, DBL_MAX);
+    route.resize(this->node_size);
+    route.assign(this->node_size, {-1, 0});
 }
 
 void navigation::add_edge(int start_node, int end_node, double weight, bool bicycle_passable, double congestion_rate) {
-    edge[++tot].to = end_node;
+    ++tot;
+    if (tot >= edge_size) {
+        edge_size <<= 1;
+        edge.resize(edge_size);
+    }
+    if (start_node >= node_size) {
+        node_size <<= 1;
+        head.resize(this->node_size);
+        vis.resize(this->node_size);
+        dis.resize(this->node_size);
+        dis.assign(this->node_size, DBL_MAX);
+        route.resize(this->node_size);
+        route.assign(this->node_size, {-1, 0});
+    }
+    edge[tot].to = end_node;
     edge[tot].next = head[start_node];
     edge[tot].distance = weight;
     edge[tot].bicycle_passable = bicycle_passable;
@@ -29,7 +40,7 @@ void navigation::add_edge(int start_node, int end_node, double weight, bool bicy
     head[start_node] = tot;
 }
 
-std::string navigation::get_route() {
+std::vector<int> navigation::get_route() {
     return route_cache;
 }
 
@@ -92,20 +103,20 @@ void navigation::dijkstra(int start_node, Coefficient Coe) {
     }
 }
 
-std::string navigation::route_output(int start_node, int end_node) {
+std::vector<int> navigation::route_output(int start_node, int end_node) {
     std::stack<int> sta;
-    std::string res = "\"";
+    std::vector<int> res;
     int node = end_node;
     while (route[node].to != -1) {
         sta.push(node);
         node = route[node].to;
     }
-    res += std::to_string(start_node);
+    res.emplace_back(start_node);
     while (!sta.empty()) {
-        res += "-->" + std::to_string(sta.top()) + "(" + std::to_string(route[sta.top()].distance) + ")";
+        res.emplace_back(sta.top());
         sta.pop();
     }
-    return res + "\"";
+    return res;
 }
 
 double navigation::navigate(int start_node, int end_node) {
@@ -115,9 +126,10 @@ double navigation::navigate(int start_node, int end_node) {
         dijkstra(start_node);
     }
     if (!under_navigating) {
-        route_cache = "";
+        route_cache.clear();
     }
-    route_cache += route_output(start_node, end_node);
+    std::vector<int> out = route_output(start_node, end_node);
+    route_cache.insert(route_cache.end(), out.begin(), out.end());
     return dis[end_node];
 }
 
@@ -129,8 +141,8 @@ double navigation::navigate(int start_node, int end_node, int strategy) {
             dijkstra(start_node, [&](int i) -> double { return edge[i].congestion_rate; });
             break;
         case 3:
-            // need to be change when the distance can similar to 1e9
-            dijkstra(start_node, [&](int i) -> double { return edge[i].bicycle_passable ? 1 : 1e9; });
+            dijkstra(start_node,
+                     [&](int i) -> double { return edge[i].bicycle_passable ? 0.5 : 1; });  // TODO:具体权重待定
             if (dis[end_node] > 1e9) {
                 std::cout << "No through road between your starting point and ending point!" << std::endl;
                 return -1;
@@ -140,9 +152,10 @@ double navigation::navigate(int start_node, int end_node, int strategy) {
             return navigate(start_node, end_node);
     }
     if (!under_navigating) {
-        route_cache = "";
+        route_cache.clear();
     }
-    route_cache += route_output(start_node, end_node);
+    std::vector<int> out = route_output(start_node, end_node);
+    route_cache.insert(route_cache.end(), out.begin(), out.end());
     dis[start_node] = DBL_MAX;  // do not cache the distance data, for it doesn't reflect the real distance
     return dis[end_node];
 }

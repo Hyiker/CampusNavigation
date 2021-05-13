@@ -1,6 +1,7 @@
 #ifndef BOOTLOADER_H
 #define BOOTLOADER_H
 #include "model/model_hub.h"
+#include "model/physical/path.h"
 
 namespace BootLoader {
 // load a model hub from the formatted file

@@ -10,7 +10,7 @@ static void parse_model(shared_ptr<ModelHub> hub, string& line) {
     boost::split(result, line, boost::is_any_of(","));
     Id id = stoi(result[0]);
     auto model_ptr = hub->construct_with_list(result[1], result);
-    if (auto path_ptr = static_pointer_cast<Path>(model_ptr)) {
+    if (auto path_ptr = static_pointer_cast<PhysicalPath>(model_ptr)) {
         shared_ptr<PhysicalModel> m1, m2;
         auto conn = path_ptr->get_connections();
         if (!hub->have(conn.first) && !hub->have(conn.second)) {
