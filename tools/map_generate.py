@@ -31,7 +31,7 @@ with open("test/test_data/algo/model.csv", 'w', encoding="utf-8") as f:
             course_time[random.randint(0,
                                        len(course_time) - 1)] + ',' +
             str(random.randint(0, 11)) + '\n')
-    for i in range(51, 251):
+    for i in range(51, 151):
         f.write(
             str(i) + ',path,path_' + str(i) + ',' +
             str(random.randint(0, 20)) + ',' + str(random.randint(0, 20)) +
