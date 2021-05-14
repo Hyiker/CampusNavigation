@@ -14,16 +14,15 @@ void Course::init(Id id, std::vector<std::string>& params) {
         separator[0] = name.find('-');
         separator[1] = name.rfind('-');
         this->_class = name.substr(0, separator[0] - 1);
-        this->courseName = name.substr(separator[0] + 1, separator[1] - separator[0] - 1);
+        this->course_name = name.substr(separator[0] + 1, separator[1] - separator[0] - 1);
         this->time = name.substr(separator[1] + 1);
-        this->physicalId = stoi(params[3]);
+        this->physical_id = stoi(params[3]);
     } else {
         // TODO: throw error here
         return;
     }
 }
 
-Id Course::getPhysicalId()
-{
-    return this->physicalId;
+Id Course::get_physical_id() {
+    return this->physical_id;
 }

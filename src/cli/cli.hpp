@@ -83,9 +83,9 @@ class Cli {
                         break;
                     }
                     _dest = dest_options[sel].second;
-                    if (auto lm = std::dynamic_pointer_cast<Course>(_dest)) {
+                    if (auto lm = std::dynamic_pointer_cast<LogicalModel>(_dest)) {
                         show_info(boost::str(boost::format("逻辑位置%1%对应的物理位置为%2%") % _dest->get_name() %
-                                             (_dest = mh_ptr->get(lm->getPhysicalId()))->get_name()));
+                                             (_dest = mh_ptr->get(lm->get_physical_id()))->get_name()));
                     }
 
                     state = CliState::ASK_FOR_STRATEGY;

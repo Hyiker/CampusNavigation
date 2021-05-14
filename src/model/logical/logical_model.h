@@ -12,6 +12,7 @@ class LogicalModel : public Model {
    public:
     friend class ModelHub;
     ~LogicalModel() = default;
+    Id virtual get_physical_id() = 0;
 };
 
 #endif
