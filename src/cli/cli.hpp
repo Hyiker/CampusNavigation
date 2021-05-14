@@ -9,21 +9,27 @@
 #include "boot/bootloader.h"
 #include "model/logical/course.h"
 #include "model/model_hub.h"
-enum class CliState { ASK_FOR_TARGET, ASK_FOR_STRATEGY, NAVIGATING_ON_ROAD };
+#include "toki/toki.hpp"
+enum class CliState { ASK_FOR_START, ASK_FOR_TARGET, ASK_FOR_STRATEGY, NAVIGATING_ON_ROAD };
 // command line interface class
 class Cli {
    private:
+    Toki toki;
     std::shared_ptr<ModelHub> mh_ptr = nullptr;
     std::string hub_path;
     // use a finite state machine
     CliState state;
     std::shared_ptr<Model> _dest, _position;
+    // distance from start endpoint on a path
+    Distance _on_road_distance;
+    std::vector<std::shared_ptr<Model>> route;
     const std::vector<std::string> _strategies{"步行", "避开拥挤", "自行车"};
 
    public:
     void show_dashboard() {
-        std::cout << boost::format("当前系统时间: %u\n") % 0
-                  << boost::format("当前位置: %1%\n") % (_position == nullptr ? "NULL" : _position->get_name());
+        std::cout << boost::format("当前系统时间: %1%\n") % toki.get_format_string()
+                  << boost::format("当前位置: [%1%]%2%\n") % (_position == nullptr ? -1 : _position->get_id()) %
+                         (_position == nullptr ? "无" : _position->get_name());
     }
     void clear() {
 #ifdef _WIN32
@@ -59,7 +65,12 @@ class Cli {
     }
 
     // init cli from a external model hub
-    Cli(const std::string& hub_path) : hub_path{hub_path}, state{CliState::ASK_FOR_TARGET} {
+    Cli(const std::string& hub_path)
+        : hub_path{hub_path},
+          state{CliState::ASK_FOR_START},
+          _position{nullptr},
+          _dest{nullptr},
+          _on_road_distance{0.0} {
     }
     // or, let the cli ask for it
     Cli() : Cli{ask_for("输入模型仓库路径:")} {
@@ -68,13 +79,42 @@ class Cli {
         Logger::init("stderr", FileMode::OVERRIDE, LogLevel::DEBUG);
         mh_ptr = BootLoader::load_model_hub(hub_path);
         // default use Id=0 as start position
-        _position = mh_ptr->get(0);
+        toki.run();
     }
     void loop() {
         while (true) {
             clear();
             show_dashboard();
             switch (state) {
+                case CliState::ASK_FOR_START: {
+                    std::string start_str = ask_for("输入你的起始地以进行查询:");
+                    auto start_options = mh_ptr->search_name(start_str);
+                    if (start_options.size() == 0) {
+                        show_warning("没有查找到指定的起始地");
+                        break;
+                    }
+                    std::vector<std::string> _start_opts_str;
+                    std::vector<std::shared_ptr<PhysicalModel>> _start_opts;
+                    for (auto& opt : start_options) {
+                        if (auto _ = std::dynamic_pointer_cast<PhysicalModel>(opt.second)) {
+                            _start_opts_str.push_back(_->get_name());
+                            _start_opts.push_back(_);
+                        }
+                    }
+                    show_list(_start_opts_str);
+                    int sel = ask_for_int("输入当前位置的序号(-1表示没有对应的起始地点):");
+                    if (sel < 0) {
+                        break;
+                    }
+                    if (sel >= _start_opts_str.size()) {
+                        show_warning("无效的序号");
+                        break;
+                    }
+                    _position = _start_opts[sel];
+
+                    state = CliState::ASK_FOR_TARGET;
+                    break;
+                }
                 case CliState::ASK_FOR_TARGET: {
                     std::string dest = ask_for("输入你的目的地以进行查询:");
                     auto dest_options = mh_ptr->search_name(dest);
@@ -103,7 +143,6 @@ class Cli {
 
                     state = CliState::ASK_FOR_STRATEGY;
 
-                    // TODO: ask for strategy
                     break;
                 }
                 case CliState::ASK_FOR_STRATEGY: {
@@ -117,7 +156,7 @@ class Cli {
                     }
 
                     auto route = mh_ptr->navigate(_position->get_id(), _dest->get_id(), sel + 1);
-                    if (route.size() == 0) {
+                    if (route.size() <= 1) {
                         show_warning("该策略下无可用路线");
                         break;
                     }
@@ -135,6 +174,7 @@ class Cli {
                     std::string ans = boost::algorithm::to_lower_copy(ask_for("是否开始导航(y/n):"));
                     if (ans.find("y") != std::string::npos) {
                         state = CliState::NAVIGATING_ON_ROAD;
+                        this->route = route;
                     } else {
                         state = CliState::ASK_FOR_TARGET;
                     }
@@ -142,7 +182,6 @@ class Cli {
                     break;
                 }
                 case CliState::NAVIGATING_ON_ROAD: {
-                    return;
                     break;
                 }
 
