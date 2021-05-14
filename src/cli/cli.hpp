@@ -10,7 +10,7 @@
 #include "model/logical/course.h"
 #include "model/model_hub.h"
 #include "toki/toki.hpp"
-enum class CliState { ASK_FOR_START, ASK_FOR_TARGET, ASK_FOR_STRATEGY, NAVIGATING_ON_ROAD };
+enum class CliState { ASK_FOR_START, ASK_FOR_TARGET, ASK_FOR_STRATEGY, NAVIGATING_ON_ROAD, NAVIGATION_FINISH };
 // command line interface class
 class Cli {
    private:
@@ -22,8 +22,12 @@ class Cli {
     std::shared_ptr<Model> _dest, _position;
     // distance from start endpoint on a path
     Distance _on_road_distance;
+    uint32_t route_index;
     std::vector<std::shared_ptr<Model>> route;
-    const std::vector<std::string> _strategies{"步行", "避开拥挤", "自行车"};
+
+    // user's speed, how far he/she can goes in a toki second
+    Distance speed;
+    const std::vector<std::string> _strategies{"步行", "避开拥挤", "自行车", "返回"};
 
    public:
     void show_dashboard() {
@@ -33,7 +37,7 @@ class Cli {
     }
     void clear() {
 #ifdef _WIN32
-        system("clr");
+        system("cls");
 #else
         system("clear");
 #endif
@@ -53,6 +57,7 @@ class Cli {
     }
     void show_warning(const std::string& message) {
         std::cout << message << '\n';
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     }
     void show_info(const std::string& message) {
         std::cout << message << '\n';
@@ -70,7 +75,8 @@ class Cli {
           state{CliState::ASK_FOR_START},
           _position{nullptr},
           _dest{nullptr},
-          _on_road_distance{0.0} {
+          _on_road_distance{0.0},
+          speed{0.1} {
     }
     // or, let the cli ask for it
     Cli() : Cli{ask_for("输入模型仓库路径:")} {
@@ -139,6 +145,7 @@ class Cli {
                     if (auto lm = std::dynamic_pointer_cast<LogicalModel>(_dest)) {
                         show_info(boost::str(boost::format("逻辑位置%1%对应的物理位置为%2%") % _dest->get_name() %
                                              (_dest = mh_ptr->get(lm->get_physical_id()))->get_name()));
+                        std::this_thread::sleep_for(std::chrono::seconds(2));
                     }
 
                     state = CliState::ASK_FOR_STRATEGY;
@@ -152,6 +159,10 @@ class Cli {
 
                     if (sel < 0 || sel >= _strategies.size()) {
                         show_warning("无效的序号");
+                        break;
+                    }
+                    if (sel == _strategies.size() - 1) {
+                        state = CliState::ASK_FOR_TARGET;
                         break;
                     }
 
@@ -175,6 +186,9 @@ class Cli {
                     if (ans.find("y") != std::string::npos) {
                         state = CliState::NAVIGATING_ON_ROAD;
                         this->route = route;
+                        this->_on_road_distance = 0.0;
+                        this->route_index = 0;
+                        this->toki.clear_delta_time();
                     } else {
                         state = CliState::ASK_FOR_TARGET;
                     }
@@ -182,9 +196,43 @@ class Cli {
                     break;
                 }
                 case CliState::NAVIGATING_ON_ROAD: {
+                    if (route_index >= route.size() - 1) {
+                        show_info(boost::str(boost::format("到达目的地%1%") % _dest->get_name()));
+                        state = CliState::NAVIGATION_FINISH;
+                        std::this_thread::sleep_for(std::chrono::seconds(1));
+                        break;
+                    }
+
+                    uint64_t dt = toki.delta_time();
+                    _on_road_distance += (Distance)(dt)*speed;
+                    while (route_index < route.size()) {
+                        _position = route[route_index];
+                        if (auto path = std::dynamic_pointer_cast<PhysicalPath>(_position)) {
+                            if (_on_road_distance >= path->get_distance()) {
+                                _on_road_distance -= path->get_distance();
+                                route_index++;
+                                show_info(boost::str(boost::format("离开路径[%1%],") % path->get_id()));
+                            } else {
+                                show_info(boost::str(boost::format("正在经过路径[%1%],") % path->get_id()));
+                                break;
+                            }
+
+                        } else if (auto pm = std::dynamic_pointer_cast<PhysicalModel>(_position)) {
+                            show_info(boost::str(boost::format("经过地点\"%1%\".") % pm->get_name()));
+                            route_index++;
+                        } else {
+                            Logger::error("未识别的模型类型");
+                        }
+                    }
+                    std::this_thread::sleep_for(std::chrono::seconds(1));
+
                     break;
                 }
-
+                case CliState::NAVIGATION_FINISH: {
+                    show_info("导航结束");
+                    state = CliState::ASK_FOR_TARGET;
+                    break;
+                }
                 default:
                     return;
                     break;

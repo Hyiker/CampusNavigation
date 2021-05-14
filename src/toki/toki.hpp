@@ -12,6 +12,9 @@ class SystemTime {
    public:
     SystemTime(uint64_t tv = 0) : timeval{tv} {
     }
+    uint64_t get_timeval() {
+        return timeval;
+    }
     void set_timeval(uint64_t tv) {
         this->timeval = tv;
     }
@@ -31,6 +34,7 @@ class Toki {
     uint32_t _time_scale;
     SystemTime _time;
     std::thread _timer_thread;
+    uint64_t _last_time;
 
     void tick() {
         _time.inc();
@@ -45,7 +49,7 @@ class Toki {
 
    public:
     // how many times quicker the system is than the real world
-    Toki(uint32_t time_scale = 1) : _time_scale{time_scale}, _timer_thread(Toki::tick_loop, this) {
+    Toki(uint32_t time_scale = 1) : _time_scale{time_scale}, _timer_thread(Toki::tick_loop, this), _last_time{0} {
     }
     // start ticking
     void run() {
@@ -54,6 +58,14 @@ class Toki {
     }
     std::string get_format_string() {
         return _time.to_string();
+    }
+    void clear_delta_time() {
+        _last_time = this->_time.get_timeval();
+    }
+    uint64_t delta_time() {
+        uint32_t dt = this->_time.get_timeval() - _last_time;
+        _last_time = this->_time.get_timeval();
+        return dt;
     }
 };
 
