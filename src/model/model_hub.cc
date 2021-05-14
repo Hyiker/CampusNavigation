@@ -131,6 +131,14 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
 
 std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
     std::vector<std::shared_ptr<Model>> ret;
+    if (!this->have(model_1) || !this->have(model_2)) {
+        throw InvalidIdException("导航目的地或者起始地无效!");
+    }
+
+    auto _model_1 = this->get(model_1);
+    auto _model_2 = this->get(model_2);
+    Logger::info(boost::str(boost::format("正在从[%1%]\"%2%\"导航至[%3%]\"%4%\"") % model_1 % _model_1->get_name() %
+                            model_2 % _model_2->get_name()));
     this->nav.navigate(model_1, model_2, method);
     auto route = this->nav.get_route();
     for (auto it = route.begin(); it + 1 != route.end(); it++) {

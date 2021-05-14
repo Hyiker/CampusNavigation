@@ -1,12 +1,15 @@
 #ifndef CLI_H
 #define CLI_H
+#include <boost/algorithm/string.hpp>
+#include <boost/format.hpp>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <vector>
 #include "boot/bootloader.h"
+#include "model/logical/course.h"
 #include "model/model_hub.h"
-enum class CliState { ASK_FOR_TARGET, ASK_FOR_STRATEGY };
+enum class CliState { ASK_FOR_TARGET, ASK_FOR_STRATEGY, NAVIGATING_ON_ROAD };
 // command line interface class
 class Cli {
    private:
@@ -14,7 +17,8 @@ class Cli {
     std::string hub_path;
     // use a finite state machine
     CliState state;
-    std::shared_ptr<Model> _dest;
+    std::shared_ptr<Model> _dest, _position;
+    const std::vector<std::string> _strategies{"步行", "避开拥挤", "自行车"};
 
    public:
     // request user input by output the question first
@@ -33,6 +37,9 @@ class Cli {
     void show_warning(const std::string& message) {
         std::cout << message << '\n';
     }
+    void show_info(const std::string& message) {
+        std::cout << message << '\n';
+    }
     std::string ask_for(const std::string& question) {
         std::cout << question;
         std::string buf;
@@ -49,6 +56,8 @@ class Cli {
     void init() {
         Logger::init("stderr", FileMode::OVERRIDE, LogLevel::DEBUG);
         mh_ptr = BootLoader::load_model_hub(hub_path);
+        // default use Id=0 as start position
+        _position = mh_ptr->get(0);
     }
     void loop() {
         while (true) {
@@ -74,13 +83,58 @@ class Cli {
                         break;
                     }
                     _dest = dest_options[sel].second;
+                    if (auto lm = std::dynamic_pointer_cast<Course>(_dest)) {
+                        show_info(boost::str(boost::format("逻辑位置%1%对应的物理位置为%2%") % _dest->get_name() %
+                                             (_dest = mh_ptr->get(lm->getPhysicalId()))->get_name()));
+                    }
+
                     state = CliState::ASK_FOR_STRATEGY;
 
                     // TODO: ask for strategy
                     break;
                 }
+                case CliState::ASK_FOR_STRATEGY: {
+                    show_list(_strategies);
+
+                    int sel = ask_for_int("输入你的目的策略:");
+
+                    if (sel < 0 || sel >= _strategies.size()) {
+                        show_warning("无效的序号");
+                        break;
+                    }
+
+                    auto route = mh_ptr->navigate(_position->get_id(), _dest->get_id(), sel + 1);
+                    if (route.size() == 0) {
+                        show_warning("该策略下无可用路线");
+                        break;
+                    }
+                    show_info("找到有效路线，如下: ");
+                    size_t i = 0;
+                    for (auto& mp : route) {
+                        if (auto path = std::dynamic_pointer_cast<PhysicalPath>(mp)) {
+                            show_info(boost::str(boost::format("经过路径[%1%],") % path->get_id()));
+                        } else if (auto pm = std::dynamic_pointer_cast<PhysicalModel>(mp)) {
+                            show_info(boost::str(boost::format("到达地点\"%1%\".") % pm->get_name()));
+                        } else {
+                            Logger::error("未识别的模型类型");
+                        }
+                    }
+                    std::string ans = boost::algorithm::to_lower_copy(ask_for("是否开始导航(y/n):"));
+                    if (ans.find("y") != std::string::npos) {
+                        state = CliState::NAVIGATING_ON_ROAD;
+                    } else {
+                        state = CliState::ASK_FOR_TARGET;
+                    }
+
+                    break;
+                }
+                case CliState::NAVIGATING_ON_ROAD: {
+                    return;
+                    break;
+                }
 
                 default:
+                    return;
                     break;
             }
         }
