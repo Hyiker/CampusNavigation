@@ -92,11 +92,37 @@ std::vector<std::pair<Id, std::shared_ptr<Model>>> ModelHub::search_name(string 
     return ret;
 }
 
-std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2) {
+std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
+    auto shortest_path = std::make_shared<PhysicalPath>();
+    shortest_path = nullptr;
     for (auto it = this->model_map.begin(); it != this->model_map.end(); it++) {
         if (auto path = std::static_pointer_cast<PhysicalPath>(it->second)) {
             if (path->get_connections() == std::pair<Id, Id>(model_1, model_2)) {
-                return path;
+                if (shortest_path == nullptr) {
+                    shortest_path = path;
+                } else {
+                    switch (method) {
+                        case 1:
+                            if (path->get_distance() < shortest_path->get_distance()) {
+                                shortest_path = path;
+                            }
+                            break;
+                        case 2:
+                            if (path->get_distance() * path->get_congestion_rate() <
+                                shortest_path->get_distance() * shortest_path->get_congestion_rate()) {
+                                shortest_path = path;
+                            }
+                            break;
+                        case 3:
+                            if (path->get_distance() * path->get_bicycle_able() <
+                                shortest_path->get_distance() * shortest_path->get_bicycle_able()) {
+                                shortest_path = path;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         }
     }
@@ -105,12 +131,12 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2) {
 
 std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
     std::vector<std::shared_ptr<Model>> ret;
-    this->nav.navigate(model_1, model_2, 1);
+    this->nav.navigate(model_1, model_2, method);
     auto route = this->nav.get_route();
     for (auto it = route.begin(); it + 1 != route.end(); it++) {
         if (*it != *(it + 1)) {
             ret.push_back(this->get(*it));
-            ret.push_back(this->find_edge(*it, *(it + 1)));
+            ret.push_back(this->find_edge(*it, *(it + 1), method));
         }
     }
     ret.push_back(this->get(route[route.size() - 1]));
