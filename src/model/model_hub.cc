@@ -126,7 +126,7 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
             }
         }
     }
-    return nullptr;
+    return shortest_path;
 }
 
 std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
