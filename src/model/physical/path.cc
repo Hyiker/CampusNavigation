@@ -30,10 +30,10 @@ void PhysicalPath::init(Id id, std::vector<std::string>& params) {
     this->model2_id = stoi(params[4]);
     this->distance = stod(params[5]);
     if (params.size() >= 7) {
-        this->bicycle_able = stod(params[6]);
+        this->congestion_rate = stod(params[6]);
     }
     if (params.size() >= 8) {
-        this->congestion_rate = stoi(params[7]);
+        this->bicycle_able = stoi(params[7]);
     }
 }
 

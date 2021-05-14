@@ -76,7 +76,7 @@ class Cli {
           _position{nullptr},
           _dest{nullptr},
           _on_road_distance{0.0},
-          speed{0.1} {
+          speed{1} {
     }
     // or, let the cli ask for it
     Cli() : Cli{ask_for("输入模型仓库路径:")} {
@@ -175,9 +175,16 @@ class Cli {
                     size_t i = 0;
                     for (auto& mp : route) {
                         if (auto path = std::dynamic_pointer_cast<PhysicalPath>(mp)) {
-                            show_info(boost::str(boost::format("经过路径[%1%],") % path->get_id()));
+                            if (sel == 2 && path->get_bicycle_able() == 1) {
+                                show_info(boost::str(boost::format("骑自行车经过路径[%1%],路径长度为[%2%]") %
+                                                     path->get_id() % path->get_distance()));
+                            } else {
+                                show_info(boost::str(boost::format("步行经过路径[%1%],路径长度为[%2%]") %
+                                                     path->get_id() % path->get_distance()));
+                            }
+
                         } else if (auto pm = std::dynamic_pointer_cast<PhysicalModel>(mp)) {
-                            show_info(boost::str(boost::format("到达地点\"%1%\".") % pm->get_name()));
+                            show_info(boost::str(boost::format("到达地点:%1%") % pm->get_name()));
                         } else {
                             Logger::error("未识别的模型类型");
                         }
@@ -197,7 +204,7 @@ class Cli {
                 }
                 case CliState::NAVIGATING_ON_ROAD: {
                     if (route_index >= route.size() - 1) {
-                        show_info(boost::str(boost::format("到达目的地%1%") % _dest->get_name()));
+                        show_info(boost::str(boost::format("到达目的地: %1%") % _dest->get_name()));
                         state = CliState::NAVIGATION_FINISH;
                         std::this_thread::sleep_for(std::chrono::seconds(1));
                         break;
@@ -213,12 +220,15 @@ class Cli {
                                 route_index++;
                                 show_info(boost::str(boost::format("离开路径[%1%],") % path->get_id()));
                             } else {
-                                show_info(boost::str(boost::format("正在经过路径[%1%],") % path->get_id()));
+                                show_info(
+                                    boost::str(boost::format("正在经过路径[%1%],路径总长为[%2%],剩余长度为[%3%]") %
+                                               path->get_id() % path->get_distance() %
+                                               (path->get_distance() - _on_road_distance)));
                                 break;
                             }
 
                         } else if (auto pm = std::dynamic_pointer_cast<PhysicalModel>(_position)) {
-                            show_info(boost::str(boost::format("经过地点\"%1%\".") % pm->get_name()));
+                            show_info(boost::str(boost::format("经过地点: %1%") % pm->get_name()));
                             route_index++;
                         } else {
                             Logger::error("未识别的模型类型");

@@ -39,7 +39,10 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
 
     if (model_type == PATH_STR) {
         auto path = static_pointer_cast<PhysicalPath>(model_ptr);
-        this->nav.add_edge(path->get_connections().first, path->get_connections().second, path->get_distance());
+        this->nav.add_edge(path->get_connections().first, path->get_connections().second, path->get_distance(),
+                           path->get_bicycle_able(), path->get_congestion_rate());
+        this->nav.add_edge(path->get_connections().second, path->get_connections().first, path->get_distance(),
+                           path->get_bicycle_able(), path->get_congestion_rate());
     }
 
     this->add(model_ptr);
@@ -97,7 +100,8 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
     shortest_path = nullptr;
     for (auto it = this->model_map.begin(); it != this->model_map.end(); it++) {
         if (auto path = std::static_pointer_cast<PhysicalPath>(it->second)) {
-            if (path->get_connections() == std::pair<Id, Id>(model_1, model_2)) {
+            if (path->get_connections() == std::pair<Id, Id>(model_1, model_2) ||
+                path->get_connections() == std::pair<Id, Id>(model_2, model_1)) {
                 if (shortest_path == nullptr) {
                     shortest_path = path;
                 } else {
