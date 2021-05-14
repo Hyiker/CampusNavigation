@@ -21,6 +21,17 @@ class Cli {
     const std::vector<std::string> _strategies{"步行", "避开拥挤", "自行车"};
 
    public:
+    void show_dashboard() {
+        std::cout << boost::format("当前系统时间: %u\n") % 0
+                  << boost::format("当前位置: %1%\n") % (_position == nullptr ? "NULL" : _position->get_name());
+    }
+    void clear() {
+#ifdef _WIN32
+        system("clr");
+#else
+        system("clear");
+#endif
+    }
     // request user input by output the question first
     // accepting multitype return types
     int ask_for_int(const std::string& question) {
@@ -61,6 +72,8 @@ class Cli {
     }
     void loop() {
         while (true) {
+            clear();
+            show_dashboard();
             switch (state) {
                 case CliState::ASK_FOR_TARGET: {
                     std::string dest = ask_for("输入你的目的地以进行查询:");
