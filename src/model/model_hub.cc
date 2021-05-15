@@ -1,4 +1,5 @@
 #include "model/model_hub.h"
+#include <algorithm>
 #include <boost/format.hpp>
 #include <iostream>
 #include "error/errors.hpp"
@@ -133,6 +134,10 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
     return shortest_path;
 }
 
+static int model_cmp(std::shared_ptr<Model> a, std::shared_ptr<Model> b) {
+    return a->get_id() < b->get_id();
+}
+
 std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
     std::vector<std::shared_ptr<Model>> ret;
     if (!this->have(model_1) || !this->have(model_2)) {
@@ -152,5 +157,6 @@ std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, i
         }
     }
     ret.push_back(this->get(route[route.size() - 1]));
+    sort(ret.begin(), ret.end(), model_cmp);
     return ret;
 }
