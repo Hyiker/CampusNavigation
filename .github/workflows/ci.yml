@@ -10,8 +10,6 @@ on:
     branches:
       - master
 jobs:
-  boost-setup:
-    0
   build-and-test:
     name: Building and testing the cmake project
     runs-on: ubuntu-latest
