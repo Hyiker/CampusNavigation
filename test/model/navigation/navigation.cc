@@ -8,7 +8,7 @@
 using namespace std;
 
 TEST(nav, nav_test) {
-    std::string path = "test/test_data/algo/model.csv";
+    std::string path = "test/test_data/algo/model_test.csv";
     Logger::init("stderr", FileMode::OVERRIDE, LogLevel::DEBUG);
     std::shared_ptr<ModelHub> modelHub = BootLoader::load_model_hub(path);
     std::vector<std::shared_ptr<Model>> expectRes;
@@ -21,7 +21,8 @@ TEST(nav, nav_test) {
     expectRes.push_back(modelHub->get(7));
 
     auto realRes = modelHub->navigate(0, 7, 1);
+    EXPECT_EQ(expectRes.size(), realRes.size());
     for (auto i = 0; i < realRes.size(); i++) {
-        EXPECT_EQ(expectRes[i], realRes[i]);
+        EXPECT_EQ(expectRes[i]->get_id(), realRes[i]->get_id());
     }
 }
