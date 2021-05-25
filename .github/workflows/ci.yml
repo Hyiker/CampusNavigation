@@ -3,8 +3,7 @@ name: Campus Navigation CI
 on: 
   push:
     branches:
-      - master
-      - feat/github_ci
+      - '**'
   pull_request:
     branches:
       - master
