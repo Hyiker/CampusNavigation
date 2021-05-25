@@ -165,10 +165,8 @@ std::vector<std::shared_ptr<Model>> ModelHub::search_near_model(std::shared_ptr<
     std::vector<std::shared_ptr<Model>> ret;
     auto id_list = this->nav.search(start_pos->get_id(), distance);
     for (auto it = id_list.begin(); it != id_list.end(); it++) {
-        if((*it) != start_pos->get_id())
-        {
-                    ret.push_back(this->get(*it));
-
+        if ((*it) != start_pos->get_id()) {
+            ret.push_back(this->get(*it));
         }
     }
     return ret;
