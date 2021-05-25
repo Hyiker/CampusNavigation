@@ -13,7 +13,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Install boost
-              run: sudo apt-get update && sudo apt-get install -yq libboost1.72-dev
+              run: sudo apt-get update && sudo apt-get install -yq libboost1.71-dev
             - name: Checkout repo
               uses: actions/checkout@v2
             - name: CMake setup
