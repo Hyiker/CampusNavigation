@@ -85,6 +85,10 @@ std::pair<Id, Id> ModelHub::connect(std::shared_ptr<PhysicalModel> pm1, std::sha
     return make_pair(pm1->get_id(), pm2->get_id());
 }
 
+static int model_cmp(std::pair<Id, std::shared_ptr<Model>> a, std::pair<Id, std::shared_ptr<Model>> b) {
+    return a.first < b.first;
+}
+
 std::vector<std::pair<Id, std::shared_ptr<Model>>> ModelHub::search_name(string name) {
     std::vector<std::pair<Id, std::shared_ptr<Model>>> ret;
     for (auto it = this->model_map.begin(); it != this->model_map.end(); it++) {
@@ -93,6 +97,7 @@ std::vector<std::pair<Id, std::shared_ptr<Model>>> ModelHub::search_name(string 
             continue;
         }
     }
+    sort(ret.begin(), ret.end(), model_cmp);
     return ret;
 }
 
@@ -134,10 +139,6 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
     return shortest_path;
 }
 
-static int model_cmp(std::shared_ptr<Model> a, std::shared_ptr<Model> b) {
-    return a->get_id() < b->get_id();
-}
-
 std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
     std::vector<std::shared_ptr<Model>> ret;
     if (!this->have(model_1) || !this->have(model_2)) {
@@ -157,6 +158,18 @@ std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, i
         }
     }
     ret.push_back(this->get(route[route.size() - 1]));
-    sort(ret.begin(), ret.end(), model_cmp);
+    return ret;
+}
+
+std::vector<std::shared_ptr<Model>> ModelHub::search_near_model(std::shared_ptr<Model> start_pos, int distance) {
+    std::vector<std::shared_ptr<Model>> ret;
+    auto id_list = this->nav.search(start_pos->get_id(), distance);
+    for (auto it = id_list.begin(); it != id_list.end(); it++) {
+        if((*it) != start_pos->get_id())
+        {
+                    ret.push_back(this->get(*it));
+
+        }
+    }
     return ret;
 }
