@@ -16,20 +16,15 @@ jobs:
     name: Building and testing the cmake project
     runs-on: ubuntu-latest
     steps:
-      - name: Install boost
-        uses: MarkusJx/install-boost@v1.0.1
-        id: install-boost
-        with:
-          boost_version: 1.75.0
       - name: Checkout repo
         uses: actions/checkout@v2
       - name: CMake setup
         run: |
          mkdir build
-         cd build && cmake -DCMAKE_BUILD_TYPE=Release ..
+         cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
       - name: Make the Project
         run: |
-          cd build && make
+          cd build && make -j2
       - name: Run unit tests
         run: |
           cd build && test/CampusNavigation_test
