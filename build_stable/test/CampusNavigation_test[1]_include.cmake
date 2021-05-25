@@ -1,5 +1,0 @@
-if(EXISTS "/mnt/c/Users/16078/Desktop/CampusNavigation/build/test/CampusNavigation_test[1]_tests.cmake")
-  include("/mnt/c/Users/16078/Desktop/CampusNavigation/build/test/CampusNavigation_test[1]_tests.cmake")
-else()
-  add_test(CampusNavigation_test_NOT_BUILT CampusNavigation_test_NOT_BUILT)
-endif()
