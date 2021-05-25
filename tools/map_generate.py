@@ -37,4 +37,4 @@ with open("test/test_data/algo/model.csv", 'w', encoding="utf-8") as f:
             str(random.randint(0, 40)) + ',' +
             str(random.randint(1000, 20000) / 1000) + ',' +
             str(random.randint(50, 100) / 100) + ',' +
-            str(int(random.randint(0, 10) > 8)) + '\n')
+            str(int(random.randint(0, 10) > 5)) + '\n')

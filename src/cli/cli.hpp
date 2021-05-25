@@ -10,7 +10,15 @@
 #include "model/logical/course.h"
 #include "model/model_hub.h"
 #include "toki/toki.hpp"
-enum class CliState { ASK_FOR_START, ASK_FOR_TARGET, ASK_FOR_STRATEGY, NAVIGATING_ON_ROAD, NAVIGATION_FINISH };
+enum class CliState {
+    ASK_FOR_START,
+    ASK_FOR_NEXT,
+    ASK_FOR_SEARCH,
+    ASK_FOR_TARGET,
+    ASK_FOR_STRATEGY,
+    NAVIGATING_ON_ROAD,
+    NAVIGATION_FINISH
+};
 // command line interface class
 class Cli {
    private:
@@ -118,7 +126,44 @@ class Cli {
                     }
                     _position = _start_opts[sel];
 
-                    state = CliState::ASK_FOR_TARGET;
+                    state = CliState::ASK_FOR_NEXT;
+                    break;
+                }
+                case CliState::ASK_FOR_NEXT: {
+                    int todo = ask_for_int("请选择你要做什么:\n1.导航  2.查找附近的建筑\n");
+                    switch (todo) {
+                        case 1:
+                            state = CliState::ASK_FOR_TARGET;
+                            break;
+                        case 2:
+                            state = CliState::ASK_FOR_SEARCH;
+                            break;
+                        default:
+                            show_warning("无效的输入序号");
+                            break;
+                    }
+
+                    break;
+                }
+
+                case CliState::ASK_FOR_SEARCH:{
+                    int distance = ask_for_int("请输入查找的距离范围:");
+                    auto _model_list = mh_ptr->search_near_model(_position, distance);
+                    if(_model_list.size() == 0){
+                        show_warning("该距离内没有其他建筑");
+                        break;
+                    }
+                    std::vector<std::string> _near_model_str;
+                    for(auto& _near_model: _model_list){
+                       _near_model_str.push_back(_near_model->get_name()); 
+                    }
+                    show_list(_near_model_str);
+                    int sel = ask_for_int("输入你想要到达的目的地序号(-1表示没有希望到达的目的地):");
+                    if(sel<0){
+                        break;
+                    }
+                    _dest = _model_list[sel];
+                    state = CliState::ASK_FOR_STRATEGY;
                     break;
                 }
                 case CliState::ASK_FOR_TARGET: {
