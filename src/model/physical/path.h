@@ -12,7 +12,8 @@ class PhysicalPath : public PhysicalModel {
     Id model1_id = -1, model2_id = -1;
     PhysicalPath(std::string);
     Distance distance;
-    bool bicycle_able;
+    double congestion_rate = 1.0;
+    bool bicycle_able = 1;
     // return the model id if succeed else -1
     Id connect_to(std::shared_ptr<PhysicalModel>);
 
@@ -23,6 +24,8 @@ class PhysicalPath : public PhysicalModel {
     // id,type,name,id1,id2,distance
     void init(Id, std::vector<std::string>&) override;
     std::pair<Id, Id> get_connections();
+    double get_congestion_rate();
+    bool get_bicycle_able();
 };
 
 #endif  // !MODEL_PHYSICAL_PATH_H

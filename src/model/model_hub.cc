@@ -1,4 +1,5 @@
 #include "model/model_hub.h"
+#include <algorithm>
 #include <boost/format.hpp>
 #include <iostream>
 #include "error/errors.hpp"
@@ -39,7 +40,10 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
 
     if (model_type == PATH_STR) {
         auto path = static_pointer_cast<PhysicalPath>(model_ptr);
-        this->nav.add_edge(path->get_connections().first, path->get_connections().second, path->get_distance());
+        this->nav.add_edge(path->get_connections().first, path->get_connections().second, path->get_distance(),
+                           path->get_bicycle_able(), path->get_congestion_rate());
+        this->nav.add_edge(path->get_connections().second, path->get_connections().first, path->get_distance(),
+                           path->get_bicycle_able(), path->get_congestion_rate());
     }
 
     this->add(model_ptr);
@@ -92,27 +96,67 @@ std::vector<std::pair<Id, std::shared_ptr<Model>>> ModelHub::search_name(string 
     return ret;
 }
 
-std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2) {
+std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
+    auto shortest_path = std::make_shared<PhysicalPath>();
+    shortest_path = nullptr;
     for (auto it = this->model_map.begin(); it != this->model_map.end(); it++) {
         if (auto path = std::static_pointer_cast<PhysicalPath>(it->second)) {
-            if (path->get_connections() == std::pair<Id, Id>(model_1, model_2)) {
-                return path;
+            if (path->get_connections() == std::pair<Id, Id>(model_1, model_2) ||
+                path->get_connections() == std::pair<Id, Id>(model_2, model_1)) {
+                if (shortest_path == nullptr) {
+                    shortest_path = path;
+                } else {
+                    switch (method) {
+                        case 1:
+                            if (path->get_distance() < shortest_path->get_distance()) {
+                                shortest_path = path;
+                            }
+                            break;
+                        case 2:
+                            if (path->get_distance() * path->get_congestion_rate() <
+                                shortest_path->get_distance() * shortest_path->get_congestion_rate()) {
+                                shortest_path = path;
+                            }
+                            break;
+                        case 3:
+                            if (path->get_distance() * path->get_bicycle_able() <
+                                shortest_path->get_distance() * shortest_path->get_bicycle_able()) {
+                                shortest_path = path;
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+                }
             }
         }
     }
-    return nullptr;
+    return shortest_path;
+}
+
+static int model_cmp(std::shared_ptr<Model> a, std::shared_ptr<Model> b) {
+    return a->get_id() < b->get_id();
 }
 
 std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
     std::vector<std::shared_ptr<Model>> ret;
-    this->nav.navigate(model_1, model_2, 1);
+    if (!this->have(model_1) || !this->have(model_2)) {
+        throw InvalidIdException("导航目的地或者起始地无效!");
+    }
+
+    auto _model_1 = this->get(model_1);
+    auto _model_2 = this->get(model_2);
+    Logger::info(boost::str(boost::format("正在从[%1%]\"%2%\"导航至[%3%]\"%4%\"") % model_1 % _model_1->get_name() %
+                            model_2 % _model_2->get_name()));
+    this->nav.navigate(model_1, model_2, method);
     auto route = this->nav.get_route();
     for (auto it = route.begin(); it + 1 != route.end(); it++) {
         if (*it != *(it + 1)) {
             ret.push_back(this->get(*it));
-            ret.push_back(this->find_edge(*it, *(it + 1)));
+            ret.push_back(this->find_edge(*it, *(it + 1), method));
         }
     }
     ret.push_back(this->get(route[route.size() - 1]));
+    sort(ret.begin(), ret.end(), model_cmp);
     return ret;
 }

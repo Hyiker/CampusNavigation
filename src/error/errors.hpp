@@ -6,19 +6,19 @@
 
 class TypeCastException : std::runtime_error {
    public:
-    TypeCastException(std::string msg) : std::runtime_error{std::move(msg)} {
+    TypeCastException(const std::string& msg) : std::runtime_error{std::move(msg)} {
     }
 };
 
 class InvalidIdException : std::runtime_error {
    public:
-    InvalidIdException(std::string msg) : std::runtime_error{std::move(msg)} {
+    InvalidIdException(const std::string& msg) : std::runtime_error{std::move(msg)} {
     }
 };
 
 class InvalidTypeException : std::runtime_error {
    public:
-    InvalidTypeException(std::string msg) : std::runtime_error{std::move(msg)} {
+    InvalidTypeException(const std::string& msg) : std::runtime_error{std::move(msg)} {
     }
 };
 

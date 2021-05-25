@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost 1.75.0 REQUIRED)
+find_package(Threads)
 
 if(NOT Boost_FOUND)
     message("未在本机查找到Boost库1.75.0版本,请安装后编译")

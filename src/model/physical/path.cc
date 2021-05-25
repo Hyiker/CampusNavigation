@@ -19,7 +19,7 @@ Distance PhysicalPath::get_distance() {
 }
 
 void PhysicalPath::init(Id id, std::vector<std::string>& params) {
-    // id,type,name,id1,id2,distance
+    // id,type,name,id1,id2,distance,congestion,bicycle_able
     this->set_id(id);
     if (params.size() < 6) {
         // TODO: throw error here
@@ -29,8 +29,22 @@ void PhysicalPath::init(Id id, std::vector<std::string>& params) {
     this->model1_id = stoi(params[3]);
     this->model2_id = stoi(params[4]);
     this->distance = stod(params[5]);
+    if (params.size() >= 7) {
+        this->congestion_rate = stod(params[6]);
+    }
+    if (params.size() >= 8) {
+        this->bicycle_able = stoi(params[7]);
+    }
 }
 
 pair<Id, Id> PhysicalPath::get_connections() {
     return make_pair(this->model1_id, this->model2_id);
+}
+
+double PhysicalPath::get_congestion_rate() {
+    return this->congestion_rate;
+}
+
+bool PhysicalPath::get_bicycle_able() {
+    return this->bicycle_able;
 }

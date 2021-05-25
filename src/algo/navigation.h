@@ -49,7 +49,7 @@ class navigation {
     std::vector<int> route_output(int start_node, int end_node);
 
    public:
-    explicit navigation(int node_size = 20, int edge_size = 200);
+    explicit navigation(int node_size = 100, int edge_size = 1000);
     void add_edge(int start_node, int end_node, double weight, bool bicycle_passable = 1, double congestion_rate = 1);
     std::vector<int> get_route();
     double navigate(int start_node, int end_node);
