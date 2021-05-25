@@ -1,35 +1,22 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <title>hello phaser!</title>
-        <script src="https://cdn.bootcdn.net/ajax/libs/phaser-ce/2.17.0/phaser.js"></script>
-    </head>
-    <body>
-        <script type="text/javascript">
-            window.onload = function () {
-                //  Note that this html file is set to pull down Phaser 2.5.0 from the JS Delivr CDN.
-                //  Although it will work fine with this tutorial, it's almost certainly not the most current version.
-                //  Be sure to replace it with an updated version before you start experimenting with adding your own code.
 
-                var game = new Phaser.Game(800, 600, Phaser.AUTO, '', {
-                    preload: preload,
-                    create: create,
-                });
+<head>
+    <meta charset="UTF-8" />
+    <meta content='width=device-width, initial-scale=1.0 maximum-scale=1.0, user-scalable=0'
+          name='viewport' />
+    <meta name="viewport"
+          content="width=device-width" />
+    <link href="https://cdn.bootcdn.net/ajax/libs/normalize/8.0.1/normalize.min.css"
+          rel="stylesheet">
+    <title>hello phaser!</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+</head>
 
-                function preload() {
-                    game.load.image('logo', 'phaser.png');
-                }
+<body>
+    <script type="text/javascript"
+            src="./js/index.js">
+    </script>
+</body>
 
-                function create() {
-                    var logo = game.add.sprite(
-                        game.world.centerX,
-                        game.world.centerY,
-                        'logo'
-                    );
-                    logo.anchor.setTo(0.5, 0.5);
-                }
-            };
-        </script>
-    </body>
 </html>
