@@ -1,6 +1,5 @@
 name: Campus Navigation CI
 
-
 on: 
   push:
     branches:
