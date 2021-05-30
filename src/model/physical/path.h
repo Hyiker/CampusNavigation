@@ -14,6 +14,7 @@ class PhysicalPath : public PhysicalModel {
     Distance distance;
     double congestion_rate = 1.0;
     bool bicycle_able = 1;
+    std::vector<std::vector<double>> anchors;
     // return the model id if succeed else -1
     Id connect_to(std::shared_ptr<PhysicalModel>);
 
@@ -26,6 +27,7 @@ class PhysicalPath : public PhysicalModel {
     std::pair<Id, Id> get_connections();
     double get_congestion_rate();
     bool get_bicycle_able();
+    std::vector<std::vector<double>> get_anchors();
 };
 
 #endif  // !MODEL_PHYSICAL_PATH_H

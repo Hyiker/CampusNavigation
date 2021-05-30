@@ -8,6 +8,9 @@ class Building : public PhysicalModel {
    private:
     // ids of the path connected
     std::unordered_set<Id> connections;
+    std::vector<double> coordinate;
+    double width;
+    double height;
 
    protected:
     Id connect_to(std::shared_ptr<PhysicalModel>);
@@ -19,6 +22,9 @@ class Building : public PhysicalModel {
     void init(Id, std::vector<std::string>&) override;
     Building(std::string);
     std::unordered_set<Id>& get_connections();
+    double get_width();
+    double get_height();
+    std::vector<double> get_coordinate();
 };
 
 #endif  // !MODEL_PHYSICAL_BUILDING_H

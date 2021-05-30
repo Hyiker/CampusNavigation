@@ -139,8 +139,8 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
     return shortest_path;
 }
 
-std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, int method) {
-    std::vector<std::shared_ptr<Model>> ret;
+std::vector<int> ModelHub::navigate(Id model_1, Id model_2, int method) {
+    std::vector<int> ret;
     if (!this->have(model_1) || !this->have(model_2)) {
         throw InvalidIdException("导航目的地或者起始地无效!");
     }
@@ -153,11 +153,11 @@ std::vector<std::shared_ptr<Model>> ModelHub::navigate(Id model_1, Id model_2, i
     auto route = this->nav.get_route();
     for (auto it = route.begin(); it + 1 != route.end(); it++) {
         if (*it != *(it + 1)) {
-            ret.push_back(this->get(*it));
-            ret.push_back(this->find_edge(*it, *(it + 1), method));
+            ret.push_back(this->get(*it)->get_id());
+            ret.push_back(this->find_edge(*it, *(it + 1), method)->get_id());
         }
     }
-    ret.push_back(this->get(route[route.size() - 1]));
+    ret.push_back(this->get(route[route.size() - 1])->get_id());
     return ret;
 }
 

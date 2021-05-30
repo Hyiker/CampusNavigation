@@ -4,6 +4,7 @@
 #include <string>
 #include "logger/logger.h"
 #include "model/physical/path.h"
+#include "model/physical/building.h"
 using namespace std;
 static void parse_model(shared_ptr<ModelHub> hub, string& line) {
     vector<string> result;
@@ -18,13 +19,13 @@ static void parse_model(shared_ptr<ModelHub> hub, string& line) {
             return;
         }
 
-        if (m1 = static_pointer_cast<PhysicalModel>(hub->get(conn.first))) {
+        if (m1 = static_pointer_cast<Building>(hub->get(conn.first))) {
             hub->connect(path_ptr, m1);
         } else {
             // TODO: throw error here
             return;
         }
-        if (m2 = static_pointer_cast<PhysicalModel>(hub->get(conn.second))) {
+        if (m2 = static_pointer_cast<Building>(hub->get(conn.second))) {
             hub->connect(path_ptr, m2);
         } else {
             // TODO: throw error here

@@ -1,3 +1,4 @@
+/*
 #ifndef CLI_H
 #define CLI_H
 #include <boost/algorithm/string.hpp>
@@ -297,3 +298,5 @@ class Cli {
 };
 
 #endif
+
+*/

@@ -23,6 +23,6 @@ TEST(nav, nav_test) {
     auto realRes = modelHub->navigate(0, 7, 1);
     EXPECT_EQ(expectRes.size(), realRes.size());
     for (auto i = 0; i < realRes.size(); i++) {
-        EXPECT_EQ(expectRes[i]->get_id(), realRes[i]->get_id());
+        EXPECT_EQ(expectRes[i]->get_id(), realRes[i]);
     }
 }
