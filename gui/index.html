@@ -9,11 +9,27 @@
             content="width=device-width" />
       <link href="https://cdn.bootcdn.net/ajax/libs/normalize/8.0.1/normalize.min.css"
             rel="stylesheet">
+      <link rel="stylesheet"
+            href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+
       <title>导览系统</title>
       <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
 </head>
 
 <body>
+      <div id="game-display"></div>
+      <div id="app">
+            <div class="block"
+                 style="width: 50vw;">
+                  <span>人物速度</span>
+                  <el-slider v-model="speed"
+                             :max="1000"
+                             :min="100"
+                             @input="changeSpeed"></el-slider>
+            </div>
+      </div>
+      <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js"></script>
+      <script src="https://unpkg.com/element-ui/lib/index.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/mathjs@9.4.1/lib/browser/math.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
       <script type="text/javascript"

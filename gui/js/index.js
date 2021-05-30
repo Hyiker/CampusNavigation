@@ -9,6 +9,7 @@ let game;
 let graphics;
 let config = {
     type: Phaser.AUTO,
+    parent: 'game-display',
     width: w,
     height: w / ASPECT_RATIO,
     backgroundColor: '#0D8FBF',
@@ -33,7 +34,6 @@ class Building {
         this.width = width * screen_scale_ratio;
         this.height = height * screen_scale_ratio;
         this.paths = paths;
-        console.log('Game Object [%s] initialized', name, this);
     }
     setGameObject(game_object) {
         game_object = game_object;
@@ -53,6 +53,29 @@ class Path {
     }
     setCurve(curve) {
         this.curve = curve;
+        this.anchors.forEach((e) => {
+            this.curve.lineTo(e[0], e[1]);
+        });
+    }
+    moveTo(x, y) {
+        let n_anc = this.anchors.length;
+        if (this.anchors[n_anc - 1][0] == -1 && this.curve) {
+            this.curve.moveTo(x, y);
+        }
+        this.anchors[n_anc - 1] = [x, y];
+        if (this.curve) {
+            this.curve.lineTo(x, y);
+        }
+    }
+    lineTo(x, y, draw = true) {
+        this.anchors.push([x, y]);
+        if (this.curve && draw) {
+            this.curve.lineTo(x, y);
+        }
+    }
+    clear() {
+        this.anchors = new Array();
+        this.endpoints = new Array();
     }
 }
 
@@ -95,7 +118,8 @@ class Player {
 let models = {
     0: new Building(0, '教师食堂', 'square', 20, 300, 400, 300, [6, 7]),
     1: new Building(1, '学生食堂', 'square', 900, 800, 400, 300, [6]),
-    2: new Building(1, '雁南宿舍', 'concave', 1400, 100, 400, 600, [7]),
+    2: new Building(2, '雁南宿舍', 'concave', 1400, 100, 400, 600, [7]),
+    3: new Building(3, '雁北宿舍', 'concave', 3000, 100, 400, 600, [8]),
     6: new Path(
         6,
         [
@@ -107,7 +131,7 @@ let models = {
         [0, 1]
     ),
     7: new Path(
-        6,
+        7,
         [
             [420, 450],
             [700, 450],
@@ -116,17 +140,71 @@ let models = {
         ],
         [0, 1]
     ),
+    8: new Path(
+        8,
+        [
+            [1800, 200],
+            [3000, 200],
+        ],
+        [2, 3]
+    ),
 };
 
-let player = new Player(1, 0, 0, 200);
+let player = new Player(1, 0, 0, 1000);
 const images = [
     ['default', 'assets/square.png'],
+    ['square', 'assets/square.png'],
     ['beacon', 'assets/beacon.png'],
     ['concave', 'assets/concave.png'],
 ];
+
+const vue_app = new Vue({
+    el: '#app',
+    data: {
+        speed: player.speed,
+    },
+    methods: {
+        changeSpeed(val) {
+            player.speed = val * screen_scale_ratio;
+        },
+    },
+});
 window.onload = function () {
+    loadModels();
     game = new Phaser.Game(config);
 };
+
+async function loadModels() {
+    models = {};
+    let remote_url = 'http://10.122.223.37:8080';
+    await axios
+        .get(remote_url + '/v1/models', {})
+        .then((resp) => {
+            resp.data.forEach((e) => {
+                switch (e['type']) {
+                    case 'building':
+                        models[e.id] = new Building(
+                            e.id,
+                            e.name,
+                            e.image,
+                            e.x,
+                            e.y,
+                            e.width,
+                            e.height,
+                            e.paths
+                        );
+                        break;
+                    case 'path':
+                        models[e.id] = new Path(e.id, e.anchors, e.endpoints);
+                        break;
+                }
+                console.log(e);
+            });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}
 
 function preload() {
     let game = this;
@@ -177,9 +255,6 @@ function create_path(scene) {
     for (const [_, e] of Object.entries(models)) {
         if (e instanceof Path) {
             let gp = new Phaser.Curves.Path(e.anchors[0][0], e.anchors[0][1]);
-            for (let i = 1; i < e.anchors.length; i++) {
-                gp.lineTo(e.anchors[i][0], e.anchors[i][1]);
-            }
             e.setCurve(gp);
         }
     }
@@ -193,17 +268,17 @@ function create() {
 
 function render() {}
 
-function paintPaths() {
-    graphics.clear();
+function paintRegularPaths() {
     graphics.lineStyle(PATH_WIDTH, 0xffffff, 1);
     graphics.fillStyle(0xffffff, 1);
+    // paint regular paths
     for (const [_, e] of Object.entries(models)) {
         if (e instanceof Path) {
             e.curve.draw(graphics);
-            let points = e.curve.getPoints(e.anchors.length);
+            let points = e.anchors;
             // add circles in turning points to get path smoother
             for (let i = 1; i < points.length - 1; i++) {
-                graphics.fillCircle(points[i].x, points[i].y, PATH_WIDTH / 2);
+                graphics.fillCircle(points[i][0], points[i][1], PATH_WIDTH / 2);
             }
         }
     }
@@ -269,14 +344,19 @@ function followPath(id, from, to) {
         let distance = math.norm(path_vec);
         let sin = path_vec[1] / distance;
         let cos = path_vec[0] / distance;
-        path_vec = math.multiply(player.speed / distance, path_vec);
+        path_vec = math.multiply(1 / distance, path_vec);
         new_seg = false;
         // rotate the player
         let rotation = Math.atan2(sin, cos);
         player.rotateTo(rotation);
-        console.log(rotation);
+        navigation_history.moveTo(player.x, player.y);
+        navigation_history.lineTo(player.x, player.y);
     }
-    player.incPosition(path_vec[0] * delta_time, path_vec[1] * delta_time);
+    player.incPosition(
+        path_vec[0] * player.speed * delta_time,
+        path_vec[1] * player.speed * delta_time
+    );
+    navigation_history.moveTo(player.x, player.y);
     if (
         _between(
             path_anchors[path_index][0],
@@ -299,29 +379,67 @@ function followPath(id, from, to) {
 const GAME_STATE = {
     WAITING: 0,
     NAVIGATING: 1,
+    REQUESTING: 2,
+    PREPARING_NAV: 3,
+    NAVIGATION_DONE: 4,
 };
-let gs = GAME_STATE.NAVIGATING;
-let navigation_route = [1, 6, 0, 7, 2];
+let gs = GAME_STATE.PREPARING_NAV;
+let navigation_route = [0, 3, 1, 4, 2];
+let navigation_route_backward = [2, 4, 1, 3, 0];
 let route_index = 0;
 let current_model;
+let navigation_history = new Path(114514, [], []);
 
+function paintNavigationRoute() {
+    graphics.lineStyle(PATH_WIDTH, 0xff0000, 1);
+    graphics.fillStyle(0xff0000, 1);
+    // paint regular paths
+    for (let model_i of navigation_route) {
+        let e = models[model_i];
+        if (e instanceof Path) {
+            e.curve.draw(graphics);
+            let points = e.anchors;
+            // add circles in turning points to get path smoother
+            for (let i = 1; i < points.length - 1; i++) {
+                graphics.fillCircle(points[i][0], points[i][1], PATH_WIDTH / 2);
+            }
+        }
+    }
+}
+
+function paintHistoryRoute() {
+    graphics.lineStyle(PATH_WIDTH, 0x000000, 1);
+    graphics.fillStyle(0x000000, 1);
+    // paint regular paths
+    navigation_history.curve.draw(graphics);
+    let points = navigation_history.anchors;
+    // add circles in turning points to get path smoother
+    for (let i = 1; i < points.length - 1; i++) {
+        graphics.fillCircle(points[i][0], points[i][1], PATH_WIDTH / 2);
+    }
+}
+
+let wait_time = 0;
 function update(t, d) {
-    paintPaths();
+    graphics.clear();
+    paintRegularPaths();
+    if (gs == GAME_STATE.NAVIGATING || gs == GAME_STATE.REQUESTING) {
+        paintNavigationRoute();
+    }
+    if (gs == GAME_STATE.NAVIGATING) {
+        paintHistoryRoute();
+    }
     delta_time = d / 1000;
     switch (gs) {
         case GAME_STATE.WAITING:
             break;
         case GAME_STATE.NAVIGATING:
-            if (follow_state == FOLLOW_STATE.NOT_FOLLOWING) {
-                // if not start following, set the path and start
-                follow_state = FOLLOW_STATE.START_FOLLOW;
-                route_index = 1;
-            } else if (follow_state == FOLLOW_STATE.DONE_FOLLOWING) {
+            if (follow_state == FOLLOW_STATE.DONE_FOLLOWING) {
                 // finish a segment of path, look for the next one
                 if ((route_index += 2) <= navigation_route.length - 2) {
                     follow_state = FOLLOW_STATE.START_FOLLOW;
                 } else {
-                    gs = GAME_STATE.WAITING;
+                    gs = GAME_STATE.NAVIGATION_DONE;
                 }
             }
             followPath(
@@ -329,6 +447,27 @@ function update(t, d) {
                 navigation_route[route_index - 1],
                 navigation_route[route_index + 1]
             );
+            break;
+        case GAME_STATE.PREPARING_NAV:
+            follow_state = FOLLOW_STATE.START_FOLLOW;
+            route_index = 1;
+            gs = GAME_STATE.NAVIGATING;
+            navigation_history.clear();
+            navigation_history.setCurve(new Phaser.Curves.Path());
+            navigation_history.lineTo(-1, -1, false);
+            break;
+        case GAME_STATE.NAVIGATION_DONE:
+            wait_time += delta_time;
+            if (wait_time < 1) {
+                return;
+            }
+            wait_time = 0;
+            [navigation_route, navigation_route_backward] = [
+                navigation_route_backward,
+                navigation_route,
+            ];
+            gs = GAME_STATE.PREPARING_NAV;
+
             break;
     }
 }
