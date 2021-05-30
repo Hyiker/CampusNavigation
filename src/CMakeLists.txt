@@ -10,8 +10,8 @@ file(GLOB_RECURSE HPPS *.hpp)
 add_executable(${PROJECT_NAME}_run ${SOURCES} ${HEADERS} ${HPPS})
 add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})
 
-include_directories(../ext/http)
-include_directories(../ext/json)
+include_directories(${PROJECT_SOURCE_DIR}/ext/http) 
+include_directories(${PROJECT_SOURCE_DIR}/ext/json)
 
 target_link_libraries(${PROJECT_NAME}_run ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(${PROJECT_NAME}_lib ${Boost_LIBRARIES})
