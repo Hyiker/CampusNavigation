@@ -9,27 +9,93 @@ let world_w = 4000,
 let screen_scale_ratio = 1;
 let game;
 let graphics;
+
+let search_input = '';
+let camera_zoom = 0.29;
+
+let path_width = 50;
+const BEACON_SIZE = 100 * screen_scale_ratio;
+const start_id = 0;
+let current_scene;
+let vue_app;
+class CampusScene extends Phaser.Scene {
+    preload() {
+        let game = this;
+        images.forEach((img) => {
+            game.load.image(img[0], img[1]);
+        });
+    }
+    render() {}
+    create() {
+        graphics = this.add.graphics();
+        create_buildings(this);
+        create_path(this);
+        create_player(this);
+
+        this.cameras.main.setZoom(camera_zoom);
+        this.cameras.main.startFollow(player.game_object, false, 0.5, 0.5);
+        this.cameras.main.setBounds(0, 0, world_w, world_h);
+    }
+    update(t, d) {
+        graphics.clear();
+        paintRegularPaths();
+        if (gs == GAME_STATE.NAVIGATING || gs == GAME_STATE.REQUESTING) {
+            paintNavigationRoute();
+        }
+        if (gs == GAME_STATE.NAVIGATING) {
+            paintHistoryRoute();
+        }
+        delta_time = d / 1000;
+        switch (gs) {
+            case GAME_STATE.WAITING:
+                break;
+            case GAME_STATE.NAVIGATING:
+                if (follow_state == FOLLOW_STATE.DONE_FOLLOWING) {
+                    // finish a segment of path, look for the next one
+                    player.setPositionId(navigation_route[route_index]);
+                    if ((route_index += 2) <= navigation_route.length - 2) {
+                        follow_state = FOLLOW_STATE.START_FOLLOW;
+                    } else {
+                        gs = GAME_STATE.NAVIGATION_DONE;
+                    }
+                }
+                followPath(
+                    navigation_route[route_index],
+                    navigation_route[route_index - 1],
+                    navigation_route[route_index + 1]
+                );
+                break;
+            case GAME_STATE.PREPARING_NAV:
+                follow_state = FOLLOW_STATE.START_FOLLOW;
+                route_index = 1;
+                gs = GAME_STATE.NAVIGATING;
+                navigation_history.clear();
+                navigation_history.setCurve(new Phaser.Curves.Path());
+                navigation_history.lineTo(-1, -1, false);
+                break;
+            case GAME_STATE.NAVIGATION_DONE:
+                let end = models[navigation_route[navigation_route.length - 1]];
+                player.setPositionId(
+                    navigation_route[navigation_route.length - 1]
+                );
+                player.setPosition(
+                    end.x + end.width / 2,
+                    end.y + end.height / 2
+                );
+
+                gs = GAME_STATE.WAITING;
+                break;
+        }
+    }
+}
 let config = {
     type: Phaser.AUTO,
     parent: 'game-display',
     width: w,
     height: h,
     backgroundColor: '#0D8FBF',
-    scene: {
-        preload: preload,
-        create: create,
-        render: render,
-        update: update,
-    },
+    scene: [(current_scene = new CampusScene())],
 };
-
-let search_input = '';
-let camera_zoom = 0.7;
-
-let path_width = 50;
-const BEACON_SIZE = 100 * screen_scale_ratio;
-const start_id = 0;
-class CampusScene extends Phaser.Scene {}
 class Building {
     constructor(id, name, image, x, y, width, height, paths) {
         this.id = id;
@@ -42,8 +108,11 @@ class Building {
         this.height = height * screen_scale_ratio;
         this.paths = paths;
     }
+    setTextObject(text_object) {
+        this.text_object = text_object;
+    }
     setGameObject(game_object) {
-        game_object = game_object;
+        this.game_object = game_object;
     }
 }
 
@@ -170,28 +239,34 @@ const images = [
     ['crossing', 'assets/crossing.png'],
     ['circle', 'assets/crossing.png'],
 ];
+let navigation_choices = ['距离最短', '考虑拥挤', '自行车'];
 
 window.onload = async function () {
     await loadModels();
     await loadPlayer();
-    const vue_app = new Vue({
+    vue_app = new Vue({
         el: '#app',
         data: {
-            speed: player.speed,
+            time_scale: 1,
             search: search_input,
             dialogVisible: false,
             destination: '',
             current_position: '',
             destination_id: -1,
+            camera_zoom: camera_zoom,
+            strategy_choices: navigation_choices,
+            radio_strategy: navigation_choices[0],
+            system_clock: 0,
         },
         methods: {
-            changeSpeed(val) {
-                player.speed = val * screen_scale_ratio;
+            changeTimeScale(val) {
+                this.time_scale = val;
             },
             queryModels(query, callback) {
                 let results = [];
+                query = query.toLowerCase();
                 for (const [_, e] of Object.entries(models)) {
-                    if (e.name && e.name.indexOf(query) !== -1) {
+                    if (e.name && e.name.toLowerCase().indexOf(query) !== -1) {
                         results.push({ value: e.name, id: e.id });
                     }
                 }
@@ -201,18 +276,32 @@ window.onload = async function () {
                 search_input = val;
             },
             handleSelect(sel) {
-                console.log(game.scene);
+                current_scene.cameras.main.startFollow(
+                    models[sel.id].game_object,
+                    false,
+                    0.5,
+                    0.5
+                );
                 this.destination = sel.value;
                 this.destination_id = sel.id;
                 this.current_position = models[player.position_id].name;
                 this.dialogVisible = true;
+                this.search = '';
             },
             async startNavigation() {
+                if (player.position_id == this.destination_id) {
+                    alert('已经位于目的地');
+                    return;
+                }
+                current_scene.cameras.main.startFollow(player, false, 0.5, 0.5);
                 await axios
                     .get(remote_url + '/v1/navigate', {
                         params: {
                             from: player.position_id,
                             to: this.destination_id,
+                            strategy: this.strategy_choices.indexOf(
+                                this.radio_strategy
+                            ),
                         },
                     })
                     .then((resp) => {
@@ -228,9 +317,17 @@ window.onload = async function () {
                         console.error(err);
                     });
             },
+            changeZoom(val) {
+                camera_zoom = val;
+                if (current_scene.cameras)
+                    current_scene.cameras.main.setZoom(camera_zoom);
+            },
         },
     });
     game = new Phaser.Game(config);
+    setInterval((e) => {
+        vue_app.system_clock += vue_app.time_scale;
+    }, 1000);
 };
 async function loadPlayer() {
     await axios
@@ -284,12 +381,6 @@ async function loadModels() {
         });
 }
 
-function preload() {
-    let game = this;
-    images.forEach((img) => {
-        game.load.image(img[0], img[1]);
-    });
-}
 function create_player(scene) {
     let sb = models[player.position_id];
     player.setGameObject(scene.add.sprite(0, 0, 'beacon'));
@@ -301,13 +392,40 @@ function create_buildings(scene) {
     for (const [_, e] of Object.entries(models)) {
         if (e instanceof Building) {
             let sprite;
-            if (e.image !== '') {
+            if (e.image) {
                 e.setGameObject(
                     (sprite = scene.add.sprite(
                         e.x + e.width / 2,
                         e.y + e.height / 2,
                         e.image
                     ))
+                );
+                let horizontal = e.width > e.height - 100;
+                let font_size = Math.min(
+                    50,
+                    ((horizontal ? e.width : e.height) / e.name.length) * 0.7
+                );
+                let text = horizontal ? e.name : e.name.split('').join('\n');
+                e.setTextObject(
+                    scene.add.text(
+                        e.x +
+                            e.width / 2 -
+                            (horizontal
+                                ? (e.name.length / 2) * font_size
+                                : font_size / 2),
+                        e.y +
+                            e.height / 2 -
+                            (horizontal
+                                ? font_size / 2
+                                : (e.name.length / 2) * font_size),
+                        text,
+                        {
+                            align: 'center',
+                            fontSize: parseInt(font_size) + 'px',
+                            color: '#ffff0f',
+                            fontFamily: 'Microsoft YaHei',
+                        }
+                    )
                 );
             } else {
                 e.setGameObject(
@@ -331,18 +449,6 @@ function create_path(scene) {
         }
     }
 }
-function create() {
-    graphics = this.add.graphics();
-    create_buildings(this);
-    create_path(this);
-    create_player(this);
-
-    this.cameras.main.setZoom(camera_zoom);
-    this.cameras.main.startFollow(player.game_object, false, 0.5, 0.5);
-    this.cameras.main.setBounds(0, 0, world_w, world_h);
-}
-
-function render() {}
 
 function paintRegularPaths() {
     graphics.lineStyle(path_width, 0xffffff, 1);
@@ -428,10 +534,11 @@ function followPath(id, from, to) {
         navigation_history.moveTo(player.x, player.y);
         navigation_history.lineTo(player.x, player.y);
     }
-    player.incPosition(
-        path_vec[0] * player.speed * delta_time,
-        path_vec[1] * player.speed * delta_time
+    let _path_vec = math.multiply(
+        player.speed * delta_time * parseFloat(vue_app.time_scale),
+        path_vec
     );
+    player.incPosition(_path_vec[0], _path_vec[1]);
     navigation_history.moveTo(player.x, player.y);
     if (
         _between(
@@ -479,6 +586,12 @@ function paintNavigationRoute() {
             for (let i = 1; i < points.length - 1; i++) {
                 graphics.fillCircle(points[i][0], points[i][1], path_width / 2);
             }
+        } else if (e instanceof Building && e.image == 'crossing') {
+            graphics.fillCircle(
+                e.x + path_width / 2,
+                e.y + path_width / 2,
+                path_width / 2
+            );
         }
     }
 }
@@ -492,52 +605,5 @@ function paintHistoryRoute() {
     // add circles in turning points to get path smoother
     for (let i = 1; i < points.length - 1; i++) {
         graphics.fillCircle(points[i][0], points[i][1], path_width / 2);
-    }
-}
-
-function update(t, d) {
-    graphics.clear();
-    paintRegularPaths();
-    if (gs == GAME_STATE.NAVIGATING || gs == GAME_STATE.REQUESTING) {
-        paintNavigationRoute();
-    }
-    if (gs == GAME_STATE.NAVIGATING) {
-        paintHistoryRoute();
-    }
-    delta_time = d / 1000;
-    switch (gs) {
-        case GAME_STATE.WAITING:
-            break;
-        case GAME_STATE.NAVIGATING:
-            if (follow_state == FOLLOW_STATE.DONE_FOLLOWING) {
-                // finish a segment of path, look for the next one
-                player.setPositionId(navigation_route[route_index]);
-                if ((route_index += 2) <= navigation_route.length - 2) {
-                    follow_state = FOLLOW_STATE.START_FOLLOW;
-                } else {
-                    gs = GAME_STATE.NAVIGATION_DONE;
-                }
-            }
-            followPath(
-                navigation_route[route_index],
-                navigation_route[route_index - 1],
-                navigation_route[route_index + 1]
-            );
-            break;
-        case GAME_STATE.PREPARING_NAV:
-            follow_state = FOLLOW_STATE.START_FOLLOW;
-            route_index = 1;
-            gs = GAME_STATE.NAVIGATING;
-            navigation_history.clear();
-            navigation_history.setCurve(new Phaser.Curves.Path());
-            navigation_history.lineTo(-1, -1, false);
-            break;
-        case GAME_STATE.NAVIGATION_DONE:
-            let end = models[navigation_route[navigation_route.length - 1]];
-            player.setPositionId(navigation_route[navigation_route.length - 1]);
-            player.setPosition(end.x + end.width / 2, end.y + end.height / 2);
-
-            gs = GAME_STATE.WAITING;
-            break;
     }
 }

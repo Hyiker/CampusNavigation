@@ -26,6 +26,7 @@ body {
 }
 .fade-on-use:hover {
     opacity: 1;
+    background-color: rgba(10, 17, 22, 0.9);
 }
 
 .fill-col {
@@ -36,4 +37,5 @@ body {
 }
 .block{
     display: block;
+    margin-bottom: 7px;
 }
