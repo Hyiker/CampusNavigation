@@ -7,7 +7,7 @@ Building::Building(string name) : PhysicalModel{name} {
 void Building::init(Id id, vector<string>& params) {
     this->set_id(id);
     // TODO
-    if (params.size() < 7) {
+    if (params.size() < 8) {
         // TODO: throw error here
         return;
     }
@@ -16,6 +16,7 @@ void Building::init(Id id, vector<string>& params) {
     this->coordinate.push_back(stod(params[4]));
     this->width = stod(params[5]);
     this->height = stod(params[6]);
+    this->shape = params[7];
 }
 Id Building::connect_to(std::shared_ptr<PhysicalModel> pm) {
     if (auto path = std::static_pointer_cast<PhysicalPath>(pm)) {
@@ -42,4 +43,9 @@ double Building::get_height()
 std::vector<double> Building::get_coordinate()
 {
     return this->coordinate;
+}
+
+std::string Building::get_shape()
+{
+    return this->shape;
 }

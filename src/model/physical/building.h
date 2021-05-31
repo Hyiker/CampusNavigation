@@ -11,6 +11,7 @@ class Building : public PhysicalModel {
     std::vector<double> coordinate;
     double width;
     double height;
+    std::string shape;
 
    protected:
     Id connect_to(std::shared_ptr<PhysicalModel>);
@@ -24,6 +25,7 @@ class Building : public PhysicalModel {
     std::unordered_set<Id>& get_connections();
     double get_width();
     double get_height();
+    std::string get_shape();
     std::vector<double> get_coordinate();
 };
 
