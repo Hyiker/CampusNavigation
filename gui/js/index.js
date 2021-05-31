@@ -170,13 +170,27 @@ const vue_app = new Vue({
     },
 });
 window.onload = function () {
+    loadPlayer();
     loadModels();
     game = new Phaser.Game(config);
 };
+let remote_url = 'http://10.122.223.37:8080';
+async function loadPlayer() {
+    await axios
+        .get(remote_url + '/v1/player', {})
+        .then((resp) => {
+            resp.data.forEach((e) => {
+                player.setPosition(e.position_id);
+                player.setSpeed(e.speed);
+            });
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+}
 
 async function loadModels() {
     models = {};
-    let remote_url = 'http://10.122.223.37:8080';
     await axios
         .get(remote_url + '/v1/models', {})
         .then((resp) => {
@@ -264,6 +278,10 @@ function create() {
     create_buildings(this);
     create_path(this);
     create_player(this);
+
+    this.cameras.main.setZoom(2);
+    this.cameras.main.startFollow(player.game_object, true);
+    this.cameras.main.setBounds(0, 0, w, w/ASPECT_RATIO);
 }
 
 function render() {}
@@ -457,6 +475,8 @@ function update(t, d) {
             navigation_history.lineTo(-1, -1, false);
             break;
         case GAME_STATE.NAVIGATION_DONE:
+            let end = models[navigation_route[navigation_route.length - 1]];
+            player.setPosition(end.x + end.width/2, end.y + end.height/2);
             wait_time += delta_time;
             if (wait_time < 1) {
                 return;
