@@ -9,8 +9,10 @@
             content="width=device-width" />
       <link href="https://cdn.bootcdn.net/ajax/libs/normalize/8.0.1/normalize.min.css"
             rel="stylesheet">
+      <link href="./css/index.css"
+            rel="stylesheet">
       <link rel="stylesheet"
-            href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+            href="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/theme-chalk/index.css">
 
       <title>导览系统</title>
       <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
@@ -18,18 +20,63 @@
 
 <body>
       <div id="app">
-            <div id="game-display"></div>
-            <div class="block"
-                 style="width: 50vw;">
-                  <span>人物速度</span>
-                  <el-slider v-model="speed"
-                             :max="1000"
-                             :min="100"
-                             @input="changeSpeed"></el-slider>
+            <div id="game-display"
+                 class="full abs-bg"></div>
+            <div class="relative-fg">
+                  <el-container>
+                        <el-header class="fade-on-use header-bar">
+
+                              <el-row style="padding-top: 10px"
+                                      :gutter="20">
+                                    <el-col :sm="7"
+                                            :md="7"
+                                            :lg="5">
+                                          <el-autocomplete class="inline-input fill-col"
+                                                           v-model="search"
+                                                           :fetch-suggestions="queryModels"
+                                                           placeholder="输入要搜索的位置"
+                                                           :trigger-on-focus="false"
+                                                           @select="handleSelect"
+                                                           @input="handleSearchInput">
+
+                                                <i slot="suffix"
+                                                   class="el-input__icon el-icon-search"></i>
+                                          </el-autocomplete>
+                                    </el-col>
+                                    <el-col :sm="5"
+                                            :md="5"
+                                            :lg="3">
+                                          <span style="color:#ffffff; font-weight:500;">人物速度</span>
+                                          <el-slider v-model="speed"
+                                                     :min="0"
+                                                     :max="4000"
+                                                     @input="changeSpeed"></el-slider>
+                                    </el-col>
+                              </el-row>
+                        </el-header>
+                        <el-dialog title="提示"
+                                   :visible.sync="dialogVisible"
+                                   width="30%"
+                                   :modal-append-to-body="false">
+                              <span class="block">当前位置：<el-link type="success">{{current_position}}</el-link>
+                              </span>
+                              <span class="block">是否要导航至：<el-link type="danger">{{destination}}</el-link>
+                              </span>
+                              <span slot="footer"
+                                    class="dialog-footer">
+                                    <el-button @click="dialogVisible = false">取 消</el-button>
+                                    <el-button type="primary"
+                                               @click="dialogVisible = false; startNavigation();">确 定</el-button>
+                              </span>
+                        </el-dialog>
+
+                  </el-container>
+
+
             </div>
       </div>
       <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js"></script>
-      <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/index.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/mathjs@9.4.1/lib/browser/math.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
       <script type="text/javascript"

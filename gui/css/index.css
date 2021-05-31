@@ -1,0 +1,39 @@
+html,
+body {
+    width: 100vw;
+    height: 100vh;
+}
+.full {
+    width: 100vw;
+    height: 100vh;
+}
+.abs-bg {
+    position: absolute;
+    z-index: 114;
+    top: 0;
+    left: 0;
+}
+.relative-fg {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    z-index: 115;
+}
+
+.fade-on-use {
+    opacity: 0.8;
+    transition: 0.3s;
+}
+.fade-on-use:hover {
+    opacity: 1;
+}
+
+.fill-col {
+    width: 100%;
+}
+.header-bar {
+    z-index: 998;
+}
+.block{
+    display: block;
+}
