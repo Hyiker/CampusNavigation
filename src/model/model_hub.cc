@@ -161,12 +161,12 @@ std::vector<int> ModelHub::navigate(Id model_1, Id model_2, int method) {
     return ret;
 }
 
-std::vector<std::shared_ptr<Model>> ModelHub::search_near_model(std::shared_ptr<Model> start_pos, int distance) {
-    std::vector<std::shared_ptr<Model>> ret;
+std::vector<std::pair<int,double>> ModelHub::search_near_model(std::shared_ptr<Model> start_pos, int distance) {
+    std::vector<std::pair<int,double>> ret;
     auto id_list = this->nav.search(start_pos->get_id(), distance);
     for (auto it = id_list.begin(); it != id_list.end(); it++) {
-        if ((*it) != start_pos->get_id()) {
-            ret.push_back(this->get(*it));
+        if (it->first != start_pos->get_id()) {
+            ret.push_back(*it);
         }
     }
     return ret;

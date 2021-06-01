@@ -4,6 +4,7 @@
 #include "model/physical/building.h"
 #include "model/physical/path.h"
 #include "model/physical/physical_model.h"
+#include "model/logical/course.h"
 using json = nlohmann::json;
 
 static json get_building_json(std::shared_ptr<Building> ptr) {
@@ -31,6 +32,16 @@ static json get_path_json(std::shared_ptr<PhysicalPath> ptr) {
     return R;
 }
 
+static json get_course_json(std::shared_ptr<Course> ptr)
+{
+    json R;
+    R["type"] = "course";
+    R["id"] = ptr->get_id();
+    R["name"] = ptr->get_name();
+    R["physical_id"] = ptr->get_physical_id();
+    return R;
+}
+
 std::string get_all_models(std::shared_ptr<ModelHub> mh_ptr) {
     json R;
     json R1;
@@ -48,7 +59,7 @@ std::string get_all_models(std::shared_ptr<ModelHub> mh_ptr) {
             R1.push_back(get_path_json(m));
             }
         }
-        else
+        else if(id >= 170 && id <= 539)
         {
            if (auto m = std::dynamic_pointer_cast<Building>(mh_ptr->get(id))) 
             {
@@ -58,6 +69,20 @@ std::string get_all_models(std::shared_ptr<ModelHub> mh_ptr) {
             {
             R2.push_back(get_path_json(m));
             } 
+        }
+        else if(id >= 360 && id < 400)
+        {
+            if (auto m = std::dynamic_pointer_cast<Course>(mh_ptr->get(id)))
+            {
+                R1.push_back(get_course_json(m));
+            }
+        }
+        else
+        {
+            if (auto m = std::dynamic_pointer_cast<Course>(mh_ptr->get(id)))
+            {
+                R2.push_back(get_course_json(m));
+            }
         }
         id++;
     }
@@ -116,5 +141,59 @@ std::string get_player_initial_info() {
     R["position_id"] = 0;
     R["speed"] = 200;
     R["width"] = 40;
+    return R.dump();
+}
+
+std::string get_search_result(std::shared_ptr<ModelHub> mh_ptr, int from, int distance)
+{
+    json R;
+    json R1;
+    int cnt = 0;
+    int flag = 0;
+    auto m = std::dynamic_pointer_cast<Building>(mh_ptr->get(from));
+    if (m->get_shape() == "crossing" || m->get_shape() == "gate") {
+        distance += 2000;
+    }
+    else
+    {
+        distance += 4000;
+        flag = 1;
+    }
+    auto origin_res = mh_ptr->search_near_model(mh_ptr->get(from), distance);
+    for (auto it = origin_res.begin(); it != origin_res.end(); it++) {
+        if(std::dynamic_pointer_cast<Building>(mh_ptr->get(it->first))->get_shape() != "crossing")
+        {
+            if (std::dynamic_pointer_cast<Building>(mh_ptr->get(it->first))->get_shape() == "gate")
+            {
+                if(it->second > distance - 2000 * flag )
+                {
+                    continue;
+                }
+                else
+                {
+                   it->second+=2000;
+                }
+            }
+            if (m->get_shape() != "crossing" && m->get_shape() != "gate")
+            {
+                it->second-=4000;
+            }
+            else
+            {
+                it->second-=2000;
+            }
+            json R2;
+            R2["id"] = it->first;
+            R2["distance"] = it->second;
+            R1.push_back(R2);
+            cnt++;
+        }
+    }
+    if (cnt <= 0) {
+        R["num"] = 0;
+    } else {
+        R["num"] = cnt;
+        R["result"] = R1;
+    }
     return R.dump();
 }

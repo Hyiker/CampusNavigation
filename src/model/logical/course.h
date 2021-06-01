@@ -17,7 +17,7 @@ class Course : public LogicalModel {
 
    public:
     Course() = default;
-    Course(std::string name);  // 2019211318班,数据结构课程设计,周四8:00
+    Course(std::string name);
     void init(Id, std::vector<std::string>&) override;
     ~Course() = default;
     Id get_physical_id();

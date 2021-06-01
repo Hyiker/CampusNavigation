@@ -33,7 +33,7 @@ class ModelHub {
     std::pair<Id, Id> connect(std::shared_ptr<PhysicalModel>, std::shared_ptr<PhysicalModel>);
     std::vector<std::pair<Id, std::shared_ptr<Model>>> search_name(std::string);
     std::vector<int> navigate(Id, Id, int);
-    std::vector<std::shared_ptr<Model>> search_near_model(std::shared_ptr<Model>,int);
+    std::vector<std::pair<int,double>> search_near_model(std::shared_ptr<Model>,int);
     // 1: walk
     // 2: crowdness
     // 3: bicycle

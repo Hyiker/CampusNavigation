@@ -120,8 +120,8 @@ std::vector<int> navigation::route_output(int start_node, int end_node) {
 }
 
 double navigation::navigate(int start_node, int end_node) {
-    assert(start_node != end_node);
-    assert(start_node < node_size && end_node < node_size);
+    //assert(start_node != end_node);
+    //assert(start_node < node_size && end_node < node_size);
     if (std::abs(dis[start_node]) > DBL_EPS) {
         dijkstra(start_node);
     }
@@ -134,8 +134,8 @@ double navigation::navigate(int start_node, int end_node) {
 }
 
 double navigation::navigate(int start_node, int end_node, int strategy) {
-    assert(start_node != end_node);
-    assert(start_node < node_size && end_node < node_size);
+    //assert(start_node != end_node);
+    //assert(start_node < node_size && end_node < node_size);
     switch (strategy) {
         case 2:
             dijkstra(start_node, [&](int i) -> double { return edge[i].congestion_rate; });
@@ -160,15 +160,15 @@ double navigation::navigate(int start_node, int end_node, int strategy) {
     return dis[end_node];
 }
 
-std::vector<int> navigation::search(int start_node, double distance_range) {
-    assert(start_node < node_size);
+std::vector<std::pair<int,double>> navigation::search(int start_node, double distance_range) {
+    //assert(start_node < node_size);
     if (std::abs(dis[start_node]) > DBL_EPS) {
         dijkstra(start_node);
     }
-    std::vector<int> res;
+    std::vector<std::pair<int,double>> res;
     for (int i = 0; i < node_size; ++i) {
-        if (dis[i] < distance_range) {
-            res.emplace_back(i);
+        if (dis[i] <= distance_range) {
+            res.push_back({i,dis[i]});
         }
     }
     res.shrink_to_fit();
