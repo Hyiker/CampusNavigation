@@ -18,7 +18,43 @@ const BEACON_SIZE = 100 * screen_scale_ratio;
 const start_id = 0;
 let current_scene;
 let vue_app;
+let active_campus_id = 1;
+let player_start_id = undefined;
+function loadNavigation() {
+    let url = new URL(window.location.href);
+    let aci = url.searchParams.get('campus');
+    active_campus_id = aci ? parseInt(aci) : 0;
+    let cross_campus = url.searchParams.get('cross_campus');
+    if (cross_campus) {
+        let next_route = JSON.parse(
+            window.sessionStorage.getItem('next_route')
+        );
+        console.log(next_route);
+        if (next_route) {
+            player_start_id = next_route[0];
+            navigation_route = next_route;
+            gs = GAME_STATE.PREPARING_NAV;
+        }
+    }
+}
+function loadConfigs() {
+    let time_scale, camera_zoom;
+    if ((time_scale = window.sessionStorage.getItem('time_scale'))) {
+        vue_app.time_scale = parseInt(time_scale);
+    }
+    if ((camera_zoom = window.sessionStorage.getItem('camera_zoom'))) {
+        vue_app.changeZoom(parseFloat(camera_zoom));
+    }
+}
+function saveConfigs() {
+    window.sessionStorage.setItem('time_scale', vue_app.time_scale);
+    window.sessionStorage.setItem('camera_zoom', camera_zoom);
+}
 class CampusScene extends Phaser.Scene {
+    constructor(id = 0) {
+        super();
+        this.id = id;
+    }
     preload() {
         let game = this;
         images.forEach((img) => {
@@ -35,6 +71,8 @@ class CampusScene extends Phaser.Scene {
         this.cameras.main.setZoom(camera_zoom);
         this.cameras.main.startFollow(player.game_object, false, 0.5, 0.5);
         this.cameras.main.setBounds(0, 0, world_w, world_h);
+
+        loadConfigs();
     }
     update(t, d) {
         graphics.clear();
@@ -82,23 +120,29 @@ class CampusScene extends Phaser.Scene {
                     end.x + end.width / 2,
                     end.y + end.height / 2
                 );
-
+                if (cross_campus) {
+                    // TODO: jump to another campus
+                    alert(
+                        '前往' + (active_campus_id ? '沙河' : '西土城') + '校区'
+                    );
+                    window.location =
+                        location.protocol +
+                        '//' +
+                        location.host +
+                        '/gui/index.html?cross_campus=true&campus=' +
+                        (active_campus_id ? 0 : 1);
+                    saveConfigs();
+                }
                 gs = GAME_STATE.WAITING;
                 break;
         }
     }
 }
-let config = {
-    type: Phaser.AUTO,
-    parent: 'game-display',
-    width: w,
-    height: h,
-    backgroundColor: '#0D8FBF',
-    scene: [(current_scene = new CampusScene())],
-};
+
 class Building {
-    constructor(id, name, image, x, y, width, height, paths) {
+    constructor(id, name, image, x, y, width, height, paths, campus) {
         this.id = id;
+        this.campus = campus;
         this.name = name;
         this.image = image;
 
@@ -116,11 +160,20 @@ class Building {
     }
 }
 
+class Course {
+    constructor(id, name, physical_id) {
+        this.id = id;
+        this.name = name;
+        this.physical_id = physical_id;
+    }
+}
+
 class Path {
     // Path is constructed by an array of anchors
     // anchors should be like [[40,30], [50,60]]
     // representing a sequence of anchors' x and y coordinates
-    constructor(id, anchors, endpoints) {
+    constructor(id, anchors, endpoints, campus = 0) {
+        this.campus = campus;
         this.id = id;
         this.anchors = anchors.map((an) => {
             return [an[0] * screen_scale_ratio, an[1] * screen_scale_ratio];
@@ -238,6 +291,7 @@ const images = [
     ['concave', 'assets/concave.png'],
     ['crossing', 'assets/crossing.png'],
     ['circle', 'assets/crossing.png'],
+    ['gate', 'assets/gate.png'],
 ];
 let navigation_choices = ['距离最短', '考虑拥挤', '自行车'];
 
@@ -267,7 +321,12 @@ window.onload = async function () {
                 query = query.toLowerCase();
                 for (const [_, e] of Object.entries(models)) {
                     if (e.name && e.name.toLowerCase().indexOf(query) !== -1) {
-                        results.push({ value: e.name, id: e.id });
+                        results.push({
+                            value: e.name,
+                            id: e.id,
+                            type: e.constructor.name,
+                            campus: e.campus === 0 ? '沙河' : '西土城',
+                        });
                     }
                 }
                 callback(results);
@@ -276,17 +335,25 @@ window.onload = async function () {
                 search_input = val;
             },
             handleSelect(sel) {
-                current_scene.cameras.main.startFollow(
-                    models[sel.id].game_object,
-                    false,
-                    0.5,
-                    0.5
-                );
-                this.destination = sel.value;
-                this.destination_id = sel.id;
-                this.current_position = models[player.position_id].name;
-                this.dialogVisible = true;
+                if (models[sel.id].campus === active_campus_id) {
+                    current_scene.cameras.main.startFollow(
+                        models[sel.id].game_object,
+                        false,
+                        0.5,
+                        0.5
+                    );
+                }
+                if (models[sel.id] instanceof Building) {
+                    this.destination = sel.value;
+                    this.destination_id = sel.id;
+                } else if (models[sel.id] instanceof Course) {
+                    let pm = models[models[sel.id].physical_id];
+                    this.destination = pm.name;
+                    this.destination_id = pm.id;
+                }
                 this.search = '';
+                this.dialogVisible = true;
+                this.current_position = models[player.position_id].name;
             },
             async startNavigation() {
                 if (player.position_id == this.destination_id) {
@@ -309,8 +376,18 @@ window.onload = async function () {
                             alert('没有到达指定位置的有效路径');
                             return;
                         }
-                        let route = resp.data.navigation;
-                        navigation_route = route;
+                        if (resp.data.status === 2) {
+                            // 有校区跳转
+                            navigation_route = resp.data.navigation[0];
+                            window.sessionStorage.setItem(
+                                'next_route',
+                                JSON.stringify(resp.data.navigation[1])
+                            );
+                            cross_campus = true;
+                        } else {
+                            navigation_route = resp.data.navigation;
+                            cross_campus = false;
+                        }
                         gs = GAME_STATE.PREPARING_NAV;
                     })
                     .catch((err) => {
@@ -318,12 +395,22 @@ window.onload = async function () {
                     });
             },
             changeZoom(val) {
-                camera_zoom = val;
-                if (current_scene.cameras)
+                this.camera_zoom = camera_zoom = val;
+                if (current_scene.cameras) {
                     current_scene.cameras.main.setZoom(camera_zoom);
+                }
             },
         },
     });
+    loadNavigation();
+    let config = {
+        type: Phaser.AUTO,
+        parent: 'game-display',
+        width: w,
+        height: h,
+        backgroundColor: '#0D8FBF',
+        scene: [(current_scene = new CampusScene(active_campus_id))],
+    };
     game = new Phaser.Game(config);
     setInterval((e) => {
         vue_app.system_clock += vue_app.time_scale;
@@ -334,7 +421,12 @@ async function loadPlayer() {
         .get(remote_url + '/v1/player', {})
         .then((resp) => {
             let e = resp.data;
-            player = new Player(e.position_id, 0, 0, e.speed);
+            player = new Player(
+                player_start_id ? player_start_id : e.position_id,
+                0,
+                0,
+                e.speed
+            );
             if (e.width) {
                 path_width = e.width;
             }
@@ -349,32 +441,47 @@ async function loadModels() {
     await axios
         .get(remote_url + '/v1/models', {})
         .then((resp) => {
-            resp.data.forEach((e) => {
-                switch (e['type']) {
-                    // fall down
-                    case 'building':
-                        let x = e.x,
-                            y = e.y;
-                        if (e.image == 'crossing') {
-                            x -= e.width / 2;
-                            y -= e.height / 2;
-                        }
-                        models[e.id] = new Building(
-                            e.id,
-                            e.name,
-                            e.image,
-                            x,
-                            y,
-                            e.width,
-                            e.height,
-                            e.paths
-                        );
-                        break;
-                    case 'path':
-                        models[e.id] = new Path(e.id, e.anchors, e.endpoints);
-                        break;
-                }
-            });
+            for (let i = 0; i < resp.data.length; i++) {
+                resp.data[i].forEach((e) => {
+                    switch (e['type']) {
+                        // fall down
+                        case 'building':
+                            let x = e.x,
+                                y = e.y;
+                            if (e.image === 'crossing' || e.image === 'gate') {
+                                x -= e.width / 2;
+                                y -= e.height / 2;
+                            }
+                            models[e.id] = new Building(
+                                e.id,
+                                e.name,
+                                e.image,
+                                x,
+                                y,
+                                e.width,
+                                e.height,
+                                e.paths,
+                                i
+                            );
+                            break;
+                        case 'course':
+                            models[e.id] = new Course(
+                                e.id,
+                                e.name,
+                                e.physical_id
+                            );
+                            break;
+                        case 'path':
+                            models[e.id] = new Path(
+                                e.id,
+                                e.anchors,
+                                e.endpoints,
+                                i
+                            );
+                            break;
+                    }
+                });
+            }
         })
         .catch((err) => {
             console.error(err);
@@ -390,7 +497,7 @@ function create_player(scene) {
 
 function create_buildings(scene) {
     for (const [_, e] of Object.entries(models)) {
-        if (e instanceof Building) {
+        if (e instanceof Building && e.campus === scene.id) {
             let sprite;
             if (e.image) {
                 e.setGameObject(
@@ -427,6 +534,8 @@ function create_buildings(scene) {
                         }
                     )
                 );
+                e.text_object.setDepth(13);
+                e.game_object.setDepth(12);
             } else {
                 e.setGameObject(
                     (sprite = scene.add.sprite(
@@ -443,7 +552,7 @@ function create_buildings(scene) {
 }
 function create_path(scene) {
     for (const [_, e] of Object.entries(models)) {
-        if (e instanceof Path) {
+        if (e instanceof Path && e.campus === scene.id) {
             let gp = new Phaser.Curves.Path(e.anchors[0][0], e.anchors[0][1]);
             e.setCurve(gp);
         }
@@ -455,7 +564,7 @@ function paintRegularPaths() {
     graphics.fillStyle(0xffffff, 1);
     // paint regular paths
     for (const [_, e] of Object.entries(models)) {
-        if (e instanceof Path) {
+        if (e instanceof Path && e.campus === current_scene.id) {
             e.curve.draw(graphics);
             let points = e.anchors;
             // add circles in turning points to get path smoother
@@ -565,12 +674,14 @@ const GAME_STATE = {
     REQUESTING: 2,
     PREPARING_NAV: 3,
     NAVIGATION_DONE: 4,
+    CROSSING_CAMPUS: 5,
 };
 let gs = GAME_STATE.WAITING;
 let navigation_route = [0, 3, 1, 4, 2];
 let route_index = 0;
 let current_model;
 let navigation_history = new Path(114514, [], []);
+let cross_campus = false;
 const NAVIGATION_ROUTE_DEPTH = 1;
 function paintNavigationRoute() {
     graphics.lineStyle(path_width, 0xff0000, 1);
@@ -600,6 +711,7 @@ function paintHistoryRoute() {
     graphics.lineStyle(path_width, 0x000000, 1);
     graphics.fillStyle(0x000000, 1);
     // paint regular paths
+    graphics.setDepth(14);
     navigation_history.curve.draw(graphics);
     let points = navigation_history.anchors;
     // add circles in turning points to get path smoother

@@ -35,7 +35,11 @@ body {
 .header-bar {
     z-index: 998;
 }
-.block{
+.block {
     display: block;
     margin-bottom: 7px;
+}
+
+.search-ac {
+    line-height: normal;
 }

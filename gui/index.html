@@ -13,6 +13,8 @@
             rel="stylesheet">
       <link rel="stylesheet"
             href="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/theme-chalk/index.css">
+      <link rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/theme-chalk/display.css">
 
       <title>导览系统</title>
       <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
@@ -24,7 +26,8 @@
                  class="full abs-bg"></div>
             <div class="relative-fg">
                   <el-container>
-                        <el-header style="z-index: 2009;">
+                        <el-header style="z-index: 2009;"
+                                   class="hidden-xs-only">
 
                               <el-row class="fade-on-use"
                                       style="padding-top: 10px; padding-bottom: 10px; border-radius: 10px"
@@ -44,7 +47,7 @@
                                             :md="7"
                                             :lg="5">
                                           <el-autocomplete style="margin-top: 5px;"
-                                                           class="inline-input fill-col"
+                                                           class="inline-input fill-col search-ac"
                                                            v-model="search"
                                                            :fetch-suggestions="queryModels"
                                                            placeholder="输入要搜索的位置/课程考试"
@@ -54,6 +57,24 @@
 
                                                 <i slot="suffix"
                                                    class="el-input__icon el-icon-search"></i>
+                                                <template slot-scope="{item}">
+                                                      <div class="name li-item"
+                                                           style="line-height: normal; margin-top:5px">
+                                                            <span style="width: 196px; text-overflow:ellipsis;overflow:hidden;display:block;white-space:nowrap;"
+                                                                  :title="item.value">
+                                                                  {{item.value}}
+                                                            </span>
+                                                      </div>
+                                                      <div class="campus-notation li-item"
+                                                           style="font-size: 12px; color: #b4b4b4b4; line-height:normal;margin-bottom:5px">
+                                                            <span v-if="item.type === 'Course'">
+                                                                  课程考试
+                                                            </span>
+                                                            <span v-else>
+                                                                  {{item.campus}}校区
+                                                            </span>
+                                                      </div>
+                                                </template>
                                           </el-autocomplete>
                                     </el-col>
                                     <el-col :sm="5"
