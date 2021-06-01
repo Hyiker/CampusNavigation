@@ -133,12 +133,29 @@ double navigation::navigate(int start_node, int end_node) {
     return dis[end_node];
 }
 
+static double get_new_distance_by_crowdness(double crowdness)
+{
+    if (crowdness < 0.6)
+    {
+        return 1.0;
+    }
+    else if (crowdness < 0.8)
+    {
+        return 5 * (crowdness - 0.4);
+    } 
+    else 
+    {
+        return 40 * (crowdness - 0.75);
+    }
+}
+
 double navigation::navigate(int start_node, int end_node, int strategy) {
     //assert(start_node != end_node);
     //assert(start_node < node_size && end_node < node_size);
     switch (strategy) {
         case 2:
-            dijkstra(start_node, [&](int i) -> double { return edge[i].congestion_rate; });
+            dijkstra(start_node,
+                     [&](int i) -> double { return get_new_distance_by_crowdness(edge[i].congestion_rate); });
             break;
         case 3:
             dijkstra(start_node,

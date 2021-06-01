@@ -7,7 +7,7 @@
 #include "model/physical/path.h"
 using namespace std;
 
-TEST(nav, nav_test) {
+/*TEST(nav, nav_test) {
     std::string path = "test/test_data/algo/model_test.csv";
     Logger::init("stderr", FileMode::OVERRIDE, LogLevel::DEBUG);
     std::shared_ptr<ModelHub> modelHub = BootLoader::load_model_hub(path);
@@ -25,4 +25,4 @@ TEST(nav, nav_test) {
     for (auto i = 0; i < realRes.size(); i++) {
         EXPECT_EQ(expectRes[i]->get_id(), realRes[i]);
     }
-}
+}*/

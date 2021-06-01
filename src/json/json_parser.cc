@@ -29,6 +29,16 @@ static json get_path_json(std::shared_ptr<PhysicalPath> ptr) {
     R["anchors"] = ptr->get_anchors();
     R["endpoints"] = ptr->get_connections();
     R["crowdness"] = ptr->get_congestion_rate();
+    double distance = ptr->get_distance();
+    if(0 <= ptr->get_connections().first && ptr->get_connections().first <= 20 || 170 <= ptr->get_connections().first && ptr->get_connections().first <= 219)
+    {
+        distance -= 2000;
+    }
+    if(0 <= ptr->get_connections().second && ptr->get_connections().second <= 20 || 170 <= ptr->get_connections().second && ptr->get_connections().second <= 219)
+    {
+        distance -= 2000;
+    }
+    R["distance"] = distance;
     return R;
 }
 
@@ -101,36 +111,43 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
     else if (from < 170 && to < 170 || from >= 170 && to >= 170)
     {
         auto nav = mh_ptr->navigate(from, to, strategy);
-        if (nav.size() <= 1) 
+        if (nav.first.size() <= 1) 
         {
             R["status"] = 0;
         } 
         else 
         {
             R["status"] = 1;
-            R["navigation"] = nav;
+            R["distance"] = nav.second;
+            R["navigation"] = nav.first;
         }
         return R.dump();
     }else if(from < 170)
     {
         json R1;
-        json R2 = mh_ptr->navigate(from, 21, strategy);
-        json R3 = mh_ptr->navigate(326, to, strategy);
+        auto nav2 = mh_ptr->navigate(from, 21, strategy);
+        auto nav3 = mh_ptr->navigate(326, to, strategy);
+        json R2 = nav2.first;
+        json R3 = nav3.first;
         R1.push_back(R2);
         R1.push_back(R3);
         R["status"] = 2;
         R["navigation"] = R1;
+        R["distance"] = nav2.second + nav3.second + 20000;
         return R.dump();
 
     }else
     {
         json R1;
-        json R2 = mh_ptr->navigate(from, 326, strategy);
-        json R3 = mh_ptr->navigate(21, to, strategy);
+        auto nav2 = mh_ptr->navigate(from, 326, strategy);
+        auto nav3 = mh_ptr->navigate(21, to, strategy);
+        json R2 = nav2.first;
+        json R3 = nav3.first;
         R1.push_back(R2);
         R1.push_back(R3);
         R["status"] = 2;
         R["navigation"] = R1;
+        R["distance"] = nav2.second + nav3.second + 20000;
         return R.dump();
     }
     

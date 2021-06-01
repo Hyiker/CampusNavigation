@@ -139,7 +139,7 @@ std::shared_ptr<Model> ModelHub::find_edge(Id model_1, Id model_2, int method) {
     return shortest_path;
 }
 
-std::vector<int> ModelHub::navigate(Id model_1, Id model_2, int method) {
+std::pair<std::vector<int>,double> ModelHub::navigate(Id model_1, Id model_2, int method) {
     std::vector<int> ret;
     if (!this->have(model_1) || !this->have(model_2)) {
         throw InvalidIdException("导航目的地或者起始地无效!");
@@ -149,7 +149,7 @@ std::vector<int> ModelHub::navigate(Id model_1, Id model_2, int method) {
     auto _model_2 = this->get(model_2);
     Logger::info(boost::str(boost::format("正在从[%1%]\"%2%\"导航至[%3%]\"%4%\"") % model_1 % _model_1->get_name() %
                             model_2 % _model_2->get_name()));
-    this->nav.navigate(model_1, model_2, method);
+    auto distance = this->nav.navigate(model_1, model_2, method);
     auto route = this->nav.get_route();
     for (auto it = route.begin(); it + 1 != route.end(); it++) {
         if (*it != *(it + 1)) {
@@ -158,7 +158,7 @@ std::vector<int> ModelHub::navigate(Id model_1, Id model_2, int method) {
         }
     }
     ret.push_back(this->get(route[route.size() - 1])->get_id());
-    return ret;
+    return {ret,distance};
 }
 
 std::vector<std::pair<int,double>> ModelHub::search_near_model(std::shared_ptr<Model> start_pos, int distance) {
