@@ -1,0 +1,70 @@
+@font-face {
+    font-family: 'ds-digitalnormal';
+    src: url('/assets/fonts/ds-digi-webfont.woff2') format('woff2'),
+        url('/assets/fonts/ds-digi-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+html,
+body {
+    width: 100vw;
+    height: 100vh;
+}
+.full {
+    width: 100vw;
+    height: 100vh;
+}
+.abs-bg {
+    position: absolute;
+    z-index: 114;
+    top: 0;
+    left: 0;
+}
+.relative-fg {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    z-index: 115;
+}
+
+.fade-on-use {
+    opacity: 0.9;
+    transition: 0.2s;
+    background-color: rgba(34, 40, 49, 0.8);
+}
+.fade-on-use:hover {
+    opacity: 1;
+    background-color: rgba(34, 40, 49, 0.95);
+}
+
+.fill-col {
+    width: 100%;
+}
+.header-bar {
+    z-index: 998;
+}
+.block {
+    display: block;
+    margin-bottom: 7px;
+}
+
+.search-ac {
+    line-height: normal;
+}
+
+.drawer-row {
+    margin: 6px;
+    padding: 6px;
+}
+.search-btn-group {
+    font-size: 20px;
+    color: #0bb4f7;
+    float: right;
+    padding: 4px;
+}
+
+.time {
+    font-family: 'ds-digitalnormal';
+    font-size: 40px;
+    color: #eeeeee;
+}
