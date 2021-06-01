@@ -325,6 +325,8 @@ window.onload = async function () {
             drawer_show: false,
             camera_zoom_min: Math.max(h / world_h, w / world_w),
             screen_width: w,
+            nearby_visible: true,
+            nearby_from: '厕所',
         },
         methods: {
             changeTimeScale(val) {
@@ -369,7 +371,8 @@ window.onload = async function () {
                 this.dialogVisible = true;
                 this.current_position = models[player.position_id].name;
             },
-            async showNearby(id) {
+            async showNearby(id, name) {
+                this.nearby_from = name;
                 await axios
                     .get(remote_url + '/v1/search', {
                         params: {

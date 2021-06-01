@@ -64,7 +64,8 @@
                                                                   <div class="search-btn-group">
                                                                         <el-button v-if="item.type !== 'Course'"
                                                                               type="success" icon="el-icon-s-flag"
-                                                                              size="mini" @click="showNearby(item.id)" circle>
+                                                                              size="mini" @click="showNearby(item.id, item.value)"
+                                                                              circle>
                                                                         </el-button>
                                                                         <el-button type="primary" style="margin: 0;"
                                                                               icon="el-icon-position" size="mini"
@@ -144,6 +145,12 @@
                               <el-button icon="el-icon-menu" type="primary" @click="drawer_show=true;" round>显示菜单
                               </el-button>
                         </el-footer>
+                        <el-dialog title="附近建筑" :visible.sync="nearby_visible" :width="screen_width > 768?'30%':'80%'"
+                              :modal="false" :fullscreen="false" :close-on-click-modal="false">
+                              <span class="block"><b>{{nearby_from}}</b>周围有这些建筑：
+                              </span>
+                              
+                        </el-dialog>
                         <el-dialog title="提示" :visible.sync="dialogVisible" :width="screen_width > 768?'30%':'80%'"
                               :modal="false" :show-close="false" :fullscreen="false" :close-on-click-modal="false">
                               <span class="block">当前位置：<el-link type="success">{{current_position}}</el-link>
