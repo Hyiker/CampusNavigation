@@ -3,18 +3,12 @@
 
 <head>
       <meta charset="UTF-8" />
-      <meta content='width=device-width, initial-scale=1.0 maximum-scale=1.0, user-scalable=0'
-            name='viewport' />
-      <meta name="viewport"
-            content="width=device-width" />
-      <link href="https://cdn.bootcdn.net/ajax/libs/normalize/8.0.1/normalize.min.css"
-            rel="stylesheet">
-      <link href="./css/index.css"
-            rel="stylesheet">
-      <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/theme-chalk/index.css">
-      <link rel="stylesheet"
-            href="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/theme-chalk/display.css">
+      <meta content='width=device-width, initial-scale=1.0 maximum-scale=1.0, user-scalable=0' name='viewport' />
+      <meta name="viewport" content="width=device-width" />
+      <link href="https://cdn.bootcdn.net/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
+      <link href="./css/index.css" rel="stylesheet">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/theme-chalk/index.css">
+      <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/theme-chalk/display.css">
 
       <title>导览系统</title>
       <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
@@ -22,19 +16,14 @@
 
 <body>
       <div id="app">
-            <div id="game-display"
-                 class="full abs-bg"></div>
+            <div id="game-display" class="full abs-bg"></div>
             <div class="relative-fg">
                   <el-container>
-                        <el-header style="z-index: 2009;"
-                                   class="hidden-xs-only">
+                        <el-header style="z-index: 2009;" class="hidden-xs-only">
 
                               <el-row class="fade-on-use"
-                                      style="padding-top: 10px; padding-bottom: 10px; border-radius: 10px"
-                                      :gutter="20">
-                                    <el-col :sm="5"
-                                            :md="5"
-                                            :lg="5">
+                                    style="padding-top: 10px; padding-bottom: 10px; border-radius: 10px" :gutter="20">
+                                    <el-col :sm="5" :md="5" :lg="5">
                                           <div style="margin-top: 10px;">
                                                 <span style="color: #fff0ff; font-weight: 700; font-size: 14px">
                                                       系统时间：
@@ -43,103 +32,135 @@
                                                       style="color: #ffff00; font-weight:900; font-size: 30px">{{(parseInt(system_clock / 60)+'').padStart(2, '0')}}:{{(parseInt(system_clock % 60) + '').padStart(2, '0')}}</span>
                                           </div>
                                     </el-col>
-                                    <el-col :sm="7"
-                                            :md="7"
-                                            :lg="5">
+                                    <el-col :sm="7" :md="7" :lg="5">
                                           <el-autocomplete style="margin-top: 5px;"
-                                                           class="inline-input fill-col search-ac"
-                                                           v-model="search"
-                                                           :fetch-suggestions="queryModels"
-                                                           placeholder="输入要搜索的位置/课程考试"
-                                                           :trigger-on-focus="false"
-                                                           @select="handleSelect"
-                                                           @input="handleSearchInput">
+                                                class="inline-input fill-col search-ac" v-model="search"
+                                                :fetch-suggestions="queryModels" placeholder="输入要搜索的位置/课程考试"
+                                                :trigger-on-focus="false" @input="handleSearchInput">
 
-                                                <i slot="suffix"
-                                                   class="el-input__icon el-icon-search"></i>
+                                                <i slot="suffix" class="el-input__icon el-icon-search"></i>
                                                 <template slot-scope="{item}">
-                                                      <div class="name li-item"
-                                                           style="line-height: normal; margin-top:5px">
-                                                            <span style="width: 196px; text-overflow:ellipsis;overflow:hidden;display:block;white-space:nowrap;"
-                                                                  :title="item.value">
-                                                                  {{item.value}}
-                                                            </span>
-                                                      </div>
-                                                      <div class="campus-notation li-item"
-                                                           style="font-size: 12px; color: #b4b4b4b4; line-height:normal;margin-bottom:5px">
-                                                            <span v-if="item.type === 'Course'">
-                                                                  课程考试
-                                                            </span>
-                                                            <span v-else>
-                                                                  {{item.campus}}校区
-                                                            </span>
-                                                      </div>
+                                                      <el-row>
+                                                            <el-col :span="20">
+                                                                  <div class="name li-item"
+                                                                        style="line-height: normal; margin-top:5px">
+                                                                        <span style="width: 17vw; max-width: 170px; text-overflow:ellipsis;overflow:hidden;display:block;white-space:nowrap;"
+                                                                              :title="item.value">
+                                                                              {{item.value}}
+                                                                        </span>
+                                                                  </div>
+                                                                  <div class="campus-notation li-item"
+                                                                        style="font-size: 12px; color: #b4b4b4b4; line-height:normal;margin-bottom:5px">
+                                                                        <span v-if="item.type === 'Course'">
+                                                                              课程考试
+                                                                        </span>
+                                                                        <span v-else>
+                                                                              {{item.campus}}校区
+                                                                        </span>
+
+                                                                  </div>
+                                                            </el-col>
+                                                            <el-col :span="4">
+                                                                  <div class="search-btn-group">
+                                                                        <el-button v-if="item.type !== 'Course'"
+                                                                              type="success" icon="el-icon-s-flag"
+                                                                              size="mini" @click="showNearby(item.id)" circle>
+                                                                        </el-button>
+                                                                        <el-button type="primary" style="margin: 0;"
+                                                                              icon="el-icon-position" size="mini"
+                                                                              @click="handleSelect(item.id, item.value)"
+                                                                              circle>
+                                                                        </el-button>
+
+                                                                  </div>
+                                                            </el-col>
+                                                      </el-row>
                                                 </template>
                                           </el-autocomplete>
                                     </el-col>
-                                    <el-col :sm="5"
-                                            :md="5"
-                                            :lg="3">
+                                    <el-col :sm="5" :md="5" :lg="3">
                                           <span style="color:#ffffff; font-weight:500;">时间比例（分每秒）</span>
-                                          <el-slider v-model="time_scale"
-                                                     :min="1"
-                                                     :max="10"
-                                                     @input="changeTimeScale"></el-slider>
+                                          <el-slider v-model="time_scale" :min="1" :max="10" @input="changeTimeScale">
+                                          </el-slider>
                                     </el-col>
-                                    <el-col :sm="7"
-                                            :md="7"
-                                            :lg="5">
+                                    <el-col :sm="7" :md="7" :lg="5">
                                           <span style="color:#ffffff; font-weight:500;">地图缩放</span>
-                                          <el-slider v-model="camera_zoom"
-                                                     :min="0.26"
-                                                     :max="1"
-                                                     :step="0.01"
-                                                     @input="changeZoom"
-                                                     show-input></el-slider>
+                                          <el-slider v-model="camera_zoom" :min="camera_zoom_min" :max="1" :step="0.01"
+                                                @input="changeZoom" show-input></el-slider>
                                     </el-col>
                               </el-row>
                         </el-header>
-                        <el-main class="hidden-sm-and-up"
-                                 style="height: 90vh;">
+                        <el-main class="hidden-sm-and-up" style="height: 90vh;">
 
                         </el-main>
-                        <el-drawer :visible.sync="drawer_show"
-                                   :with-header="false"
-                                   :direction="'btt'"
-                                   :modal="false">
+                        <el-drawer :visible.sync="drawer_show" :size="'25%'" :with-header="false" :direction="'btt'"
+                              :modal="false">
+                              <div style="padding: 12px;">
+                                    <el-autocomplete style="width: 100%;" v-model="search"
+                                          :fetch-suggestions="queryModels" placeholder="输入要搜索的位置/课程考试"
+                                          :trigger-on-focus="false" @select="handleSelect" @input="handleSearchInput">
 
+                                          <i slot="suffix" class="el-input__icon el-icon-search"></i>
+                                          <template slot-scope="{item}">
+                                                <div class="name li-item" style="line-height: normal; margin-top:5px">
+                                                      <span style="width: 196px; text-overflow:ellipsis;overflow:hidden;display:block;white-space:nowrap;"
+                                                            :title="item.value">
+                                                            {{item.value}}
+                                                      </span>
+                                                </div>
+                                                <div class="campus-notation li-item"
+                                                      style="font-size: 12px; color: #b4b4b4b4; line-height:normal;margin-bottom:5px">
+                                                      <span v-if="item.type === 'Course'">
+                                                            课程考试
+                                                      </span>
+                                                      <span v-else>
+                                                            {{item.campus}}校区
+                                                      </span>
+                                                </div>
+                                          </template>
+                                    </el-autocomplete>
+                                    <el-row class="drawer-row" :gutter="10">
+                                          <el-col :span="12" style="padding: 9px;">
+                                                <label style="color:#000000; font-weight:500;">时间比例（分每秒）</label>
+                                          </el-col>
+                                          <el-col :span="12">
+                                                <el-slider v-model="time_scale" :min="1" :max="10"
+                                                      @input="changeTimeScale">
+                                                </el-slider>
+                                          </el-col>
+                                    </el-row>
+                                    <el-row class="drawer-row" :gutter="10">
+                                          <el-col :span="6" style="padding: 9px;">
+                                                <label style="color:#000000; font-weight:500;">地图缩放</label>
+                                          </el-col>
+                                          <el-col :span="18">
+                                                <el-slider v-model="camera_zoom" :min="camera_zoom_min" :max="1"
+                                                      :step="0.01" @input="changeZoom" show-input></el-slider>
+                                          </el-col>
+                                    </el-row>
+                              </div>
                         </el-drawer>
-                        <el-footer class="hidden-sm-and-up"
-                                   style="height: 10vh;text-align: center">
-                              <el-button icon="el-icon-menu"
-                                         type="primary"
-                                         @click="drawer_show=true;"
-                                         round>显示菜单</el-button>
+                        <el-footer class="hidden-sm-and-up" style="height: 10vh;text-align: center">
+                              <el-button icon="el-icon-menu" type="primary" @click="drawer_show=true;" round>显示菜单
+                              </el-button>
                         </el-footer>
-                        <el-dialog title="提示"
-                                   :visible.sync="dialogVisible"
-                                   width="30%"
-                                   :modal="false"
-                                   :show-close="false"
-                                   :fullscreen="false"
-                                   :close-on-click-modal="false">
+                        <el-dialog title="提示" :visible.sync="dialogVisible" :width="screen_width > 768?'30%':'80%'"
+                              :modal="false" :show-close="false" :fullscreen="false" :close-on-click-modal="false">
                               <span class="block">当前位置：<el-link type="success">{{current_position}}</el-link>
                               </span>
                               <span class="block">是否要导航至：<el-link type="danger">{{destination}}</el-link>
                               </span>
                               <span class="block">使用策略：</span>
-                              <el-radio-group v-model="radio_strategy"
-                                              size="mini">
-                                    <el-radio-button v-for="strategy in strategy_choices"
-                                                     :label="strategy"></el-radio-button>
+                              <el-radio-group v-model="radio_strategy" size="mini">
+                                    <el-radio-button v-for="strategy in strategy_choices" :label="strategy">
+                                    </el-radio-button>
                               </el-radio-group>
-                              <span slot="footer"
-                                    class="dialog-footer">
+                              <span slot="footer" class="dialog-footer">
                                     <el-button
-                                               @click="dialogVisible = false; current_scene.cameras.main.startFollow(player, false, 0.5, 0.5);">
+                                          @click="dialogVisible = false; current_scene.cameras.main.startFollow(player, false, 0.5, 0.5);">
                                           取 消</el-button>
-                                    <el-button type="primary"
-                                               @click="dialogVisible = false; startNavigation();">确 定</el-button>
+                                    <el-button type="primary" @click="dialogVisible = false; startNavigation();">确 定
+                                    </el-button>
                               </span>
                         </el-dialog>
 
@@ -152,8 +173,7 @@
       <script src="https://cdn.jsdelivr.net/npm/element-ui@2.15.2/lib/index.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/mathjs@9.4.1/lib/browser/math.min.js"></script>
       <script src="https://cdn.jsdelivr.net/npm/axios@0.21.1/dist/axios.min.js"></script>
-      <script type="text/javascript"
-              src="./js/index.js">
+      <script type="text/javascript" src="./js/index.js">
       </script>
 </body>
 

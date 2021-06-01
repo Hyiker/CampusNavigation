@@ -37,6 +37,13 @@ function loadNavigation() {
         }
     }
 }
+function sweet_alert(msg) {
+    const h = vue_app.$createElement;
+    vue_app.$notify({
+        title: '提示',
+        message: h('i', { style: 'color: teal' }, msg),
+    });
+}
 function loadConfigs() {
     let time_scale, camera_zoom;
     if ((time_scale = window.sessionStorage.getItem('time_scale'))) {
@@ -122,16 +129,20 @@ class CampusScene extends Phaser.Scene {
                 );
                 if (cross_campus) {
                     // TODO: jump to another campus
-                    alert(
-                        '前往' + (active_campus_id ? '沙河' : '西土城') + '校区'
+                    sweet_alert(
+                        '准备前往' +
+                            (active_campus_id ? '沙河' : '西土城') +
+                            '校区'
                     );
-                    window.location =
-                        location.protocol +
-                        '//' +
-                        location.host +
-                        '/gui/index.html?cross_campus=true&campus=' +
-                        (active_campus_id ? 0 : 1);
-                    saveConfigs();
+                    setTimeout(() => {
+                        saveConfigs();
+                        window.location =
+                            location.protocol +
+                            '//' +
+                            location.host +
+                            '/index.html?cross_campus=true&campus=' +
+                            (active_campus_id ? 0 : 1);
+                    }, 1500);
                 }
                 gs = GAME_STATE.WAITING;
                 break;
@@ -311,7 +322,9 @@ window.onload = async function () {
             strategy_choices: navigation_choices,
             radio_strategy: navigation_choices[0],
             system_clock: 0,
-            drawer_show: false
+            drawer_show: false,
+            camera_zoom_min: Math.max(h / world_h, w / world_w),
+            screen_width: w,
         },
         methods: {
             changeTimeScale(val) {
@@ -335,20 +348,20 @@ window.onload = async function () {
             handleSearchInput(val) {
                 search_input = val;
             },
-            handleSelect(sel) {
-                if (models[sel.id].campus === active_campus_id) {
+            handleSelect(id, val) {
+                if (models[id].campus === active_campus_id) {
                     current_scene.cameras.main.startFollow(
-                        models[sel.id].game_object,
+                        models[id].game_object,
                         false,
                         0.5,
                         0.5
                     );
                 }
-                if (models[sel.id] instanceof Building) {
-                    this.destination = sel.value;
-                    this.destination_id = sel.id;
-                } else if (models[sel.id] instanceof Course) {
-                    let pm = models[models[sel.id].physical_id];
+                if (models[id] instanceof Building) {
+                    this.destination = val;
+                    this.destination_id = id;
+                } else if (models[id] instanceof Course) {
+                    let pm = models[models[id].physical_id];
                     this.destination = pm.name;
                     this.destination_id = pm.id;
                 }
@@ -356,9 +369,26 @@ window.onload = async function () {
                 this.dialogVisible = true;
                 this.current_position = models[player.position_id].name;
             },
+            async showNearby(id) {
+                await axios
+                    .get(remote_url + '/v1/search', {
+                        params: {
+                            from: id,
+                        },
+                    })
+                    .then((resp) => {
+                        if (!resp.data.num || !resp.data.result) {
+                            sweet_alert('建筑物周围没有其他建筑');
+                            return;
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                    });
+            },
             async startNavigation() {
                 if (player.position_id == this.destination_id) {
-                    alert('已经位于目的地');
+                    sweet_alert('已经位于目的地了');
                     return;
                 }
                 current_scene.cameras.main.startFollow(player, false, 0.5, 0.5);
@@ -374,7 +404,7 @@ window.onload = async function () {
                     })
                     .then((resp) => {
                         if (!resp.data.status) {
-                            alert('没有到达指定位置的有效路径');
+                            sweet_alert('没有到达指定位置的有效路径');
                             return;
                         }
                         if (resp.data.status === 2) {

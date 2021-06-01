@@ -22,7 +22,7 @@ body {
 
 .fade-on-use {
     opacity: 0.8;
-    transition: 0.3s;
+    transition: 0.2s;
 }
 .fade-on-use:hover {
     opacity: 1;
@@ -42,4 +42,15 @@ body {
 
 .search-ac {
     line-height: normal;
+}
+
+.drawer-row {
+    margin: 6px;
+    padding: 6px;
+}
+.search-btn-group {
+    font-size: 20px;
+    color: #0bb4f7;
+    float: right;
+    padding: 4px;
 }
