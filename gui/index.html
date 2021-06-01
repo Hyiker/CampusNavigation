@@ -99,6 +99,23 @@
                                     </el-col>
                               </el-row>
                         </el-header>
+                        <el-main class="hidden-sm-and-up"
+                                 style="height: 90vh;">
+
+                        </el-main>
+                        <el-drawer :visible.sync="drawer_show"
+                                   :with-header="false"
+                                   :direction="'btt'"
+                                   :modal="false">
+
+                        </el-drawer>
+                        <el-footer class="hidden-sm-and-up"
+                                   style="height: 10vh;text-align: center">
+                              <el-button icon="el-icon-menu"
+                                         type="primary"
+                                         @click="drawer_show=true;"
+                                         round>显示菜单</el-button>
+                        </el-footer>
                         <el-dialog title="提示"
                                    :visible.sync="dialogVisible"
                                    width="30%"

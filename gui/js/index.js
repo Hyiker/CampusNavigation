@@ -311,6 +311,7 @@ window.onload = async function () {
             strategy_choices: navigation_choices,
             radio_strategy: navigation_choices[0],
             system_clock: 0,
+            drawer_show: false
         },
         methods: {
             changeTimeScale(val) {
