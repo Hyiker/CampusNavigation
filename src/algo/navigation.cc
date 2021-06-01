@@ -145,7 +145,7 @@ static double get_new_distance_by_crowdness(double crowdness)
     } 
     else 
     {
-        return 40 * (crowdness - 0.75);
+        return 10 * (crowdness - 0.6);
     }
 }
 

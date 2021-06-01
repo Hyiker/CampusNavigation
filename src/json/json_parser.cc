@@ -29,6 +29,7 @@ static json get_path_json(std::shared_ptr<PhysicalPath> ptr) {
     R["anchors"] = ptr->get_anchors();
     R["endpoints"] = ptr->get_connections();
     R["crowdness"] = ptr->get_congestion_rate();
+    R["bicycle_able"] = ptr->get_bicycle_able();
     double distance = ptr->get_distance();
     if(0 <= ptr->get_connections().first && ptr->get_connections().first <= 20 || 170 <= ptr->get_connections().first && ptr->get_connections().first <= 219)
     {
