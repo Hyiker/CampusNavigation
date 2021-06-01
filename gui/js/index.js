@@ -36,12 +36,25 @@ function loadNavigation() {
             gs = GAME_STATE.PREPARING_NAV;
         }
     }
+    let time = url.searchParams.get('time');
+    vue_app.system_clock = time ? parseInt(time) : 0;
+    let strategy = url.searchParams.get('strategy');
+    vue_app.strategy = strategy ? parseInt(strategy) : 0;
 }
-function sweet_alert(msg) {
+function sweetAlert(msg) {
     const h = vue_app.$createElement;
     vue_app.$notify({
         title: '提示',
         message: h('i', { style: 'color: teal' }, msg),
+    });
+}
+function topAlert(msg, type, duration = 3000) {
+    vue_app.$message({
+        message: msg,
+        type: type,
+        center: true,
+        duration: duration,
+        offset: 90,
     });
 }
 function loadConfigs() {
@@ -57,6 +70,18 @@ function saveConfigs() {
     window.sessionStorage.setItem('time_scale', vue_app.time_scale);
     window.sessionStorage.setItem('camera_zoom', camera_zoom);
 }
+let _system_clock;
+function speed_scale_by_crowdness(crowdness) {
+    if (crowdness < 0.6) {
+        return 1.0;
+    } else if (crowdness < 0.8) {
+        return 1.0 / (5 * (crowdness - 0.4));
+    } else {
+        return 1.0 / (10 * (crowdness - 0.6));
+    }
+}
+let _p = undefined,
+    _speed_scale = 1.0;
 class CampusScene extends Phaser.Scene {
     constructor(id = 0) {
         super();
@@ -99,12 +124,48 @@ class CampusScene extends Phaser.Scene {
                     // finish a segment of path, look for the next one
                     player.setPositionId(navigation_route[route_index]);
                     if ((route_index += 2) <= navigation_route.length - 2) {
+                        _p = models[navigation_route[route_index]];
+                        _speed_scale =
+                            speed_scale_by_crowdness(_p.crowdness) *
+                            (_p.bicycle_able && vue_app.strategy === 2
+                                ? 2.0
+                                : 1.0);
+                        topAlert(
+                            (vue_app.strategy === 2 && _p.bicycle_able
+                                ? '骑自行车'
+                                : '步行') +
+                                models[navigation_route[route_index]].distance +
+                                '米至 ' +
+                                (models[navigation_route[route_index + 1]].name
+                                    ? models[navigation_route[route_index + 1]]
+                                          .name
+                                    : '路口') +
+                                (_p.crowdness < 0.6
+                                    ? ''
+                                    : _p.crowdness < 0.8
+                                    ? '，前方较为拥堵'
+                                    : '，前方严重拥塞'),
+                            _p.crowdness < 0.6
+                                ? 'success'
+                                : _p.crowdness < 0.8
+                                ? 'warning'
+                                : 'error',
+                            ((models[navigation_route[route_index]].distance /
+                                player.speed /
+                                vue_app.time_scale) *
+                                1000) /
+                                _speed_scale
+                        );
                         follow_state = FOLLOW_STATE.START_FOLLOW;
+                        break;
                     } else {
                         gs = GAME_STATE.NAVIGATION_DONE;
+                        break;
                     }
                 }
+
                 followPath(
+                    _speed_scale,
                     navigation_route[route_index],
                     navigation_route[route_index - 1],
                     navigation_route[route_index + 1]
@@ -128,12 +189,12 @@ class CampusScene extends Phaser.Scene {
                     end.y + end.height / 2
                 );
                 if (cross_campus) {
-                    // TODO: jump to another campus
-                    sweet_alert(
+                    sweetAlert(
                         '准备前往' +
                             (active_campus_id ? '沙河' : '西土城') +
                             '校区'
                     );
+                    _system_clock = vue_app.system_clock;
                     setTimeout(() => {
                         saveConfigs();
                         window.location =
@@ -141,7 +202,11 @@ class CampusScene extends Phaser.Scene {
                             '//' +
                             location.host +
                             '/index.html?cross_campus=true&campus=' +
-                            (active_campus_id ? 0 : 1);
+                            (active_campus_id ? 0 : 1) +
+                            '&time=' +
+                            (_system_clock + parseInt(20000 / player.speed)) +
+                            '&strategy=' +
+                            vue_app.strategy;
                     }, 1500);
                 }
                 gs = GAME_STATE.WAITING;
@@ -183,13 +248,24 @@ class Path {
     // Path is constructed by an array of anchors
     // anchors should be like [[40,30], [50,60]]
     // representing a sequence of anchors' x and y coordinates
-    constructor(id, anchors, endpoints, campus = 0) {
+    constructor(
+        id,
+        anchors,
+        endpoints,
+        distance,
+        crowdness = 0.0,
+        bicycle_able = true,
+        campus = 0
+    ) {
         this.campus = campus;
         this.id = id;
         this.anchors = anchors.map((an) => {
             return [an[0] * screen_scale_ratio, an[1] * screen_scale_ratio];
         });
         this.endpoints = endpoints;
+        this.crowdness = crowdness;
+        this.distance = distance;
+        this.bicycle_able = bicycle_able;
     }
     setCurve(curve) {
         this.curve = curve;
@@ -293,7 +369,7 @@ let models = {
     ),
 };
 
-let remote_url = 'http://10.122.223.37:8080';
+let remote_url = '';
 let player;
 const images = [
     ['default', 'assets/square.png'],
@@ -301,7 +377,7 @@ const images = [
     ['beacon', 'assets/beacon.png'],
     ['concave', 'assets/concave.png'],
     ['crossing', 'assets/crossing.png'],
-    ['circle', 'assets/crossing.png'],
+    ['circle', 'assets/circle.png'],
     ['gate', 'assets/gate.png'],
 ];
 let navigation_choices = ['距离最短', '考虑拥挤', '自行车'];
@@ -321,12 +397,16 @@ window.onload = async function () {
             camera_zoom: camera_zoom,
             strategy_choices: navigation_choices,
             radio_strategy: navigation_choices[0],
+            strategy: 0,
             system_clock: 0,
             drawer_show: false,
             camera_zoom_min: Math.max(h / world_h, w / world_w),
             screen_width: w,
-            nearby_visible: true,
+            nearby_visible: false,
             nearby_from: '厕所',
+            nearby_search: '',
+            navigation_distance: 0,
+            nearby_table: [{ id: 0, name: '二楼', distance: 100 }],
         },
         methods: {
             changeTimeScale(val) {
@@ -381,9 +461,18 @@ window.onload = async function () {
                     })
                     .then((resp) => {
                         if (!resp.data.num || !resp.data.result) {
-                            sweet_alert('建筑物周围没有其他建筑');
+                            sweetAlert('建筑物周围没有其他建筑');
                             return;
                         }
+                        this.nearby_table = [];
+                        resp.data.result.forEach((e) => {
+                            this.nearby_table.push({
+                                id: e.id,
+                                distance: e.distance,
+                                name: models[e.id].name,
+                            });
+                        });
+                        this.nearby_visible = true;
                     })
                     .catch((err) => {
                         console.error(err);
@@ -391,10 +480,14 @@ window.onload = async function () {
             },
             async startNavigation() {
                 if (player.position_id == this.destination_id) {
-                    sweet_alert('已经位于目的地了');
+                    sweetAlert('已经位于目的地了');
                     return;
                 }
+
                 current_scene.cameras.main.startFollow(player, false, 0.5, 0.5);
+                this.strategy = this.strategy_choices.indexOf(
+                    this.radio_strategy
+                );
                 await axios
                     .get(remote_url + '/v1/navigate', {
                         params: {
@@ -407,7 +500,7 @@ window.onload = async function () {
                     })
                     .then((resp) => {
                         if (!resp.data.status) {
-                            sweet_alert('没有到达指定位置的有效路径');
+                            sweetAlert('没有到达指定位置的有效路径');
                             return;
                         }
                         if (resp.data.status === 2) {
@@ -422,6 +515,15 @@ window.onload = async function () {
                             navigation_route = resp.data.navigation;
                             cross_campus = false;
                         }
+                        this.navigation_distance = resp.data.distance;
+                        topAlert(
+                            '正在导航至' +
+                                this.destination +
+                                ', 全程' +
+                                this.navigation_distance +
+                                '米',
+                            'warning'
+                        );
                         gs = GAME_STATE.PREPARING_NAV;
                     })
                     .catch((err) => {
@@ -442,7 +544,7 @@ window.onload = async function () {
         parent: 'game-display',
         width: w,
         height: h,
-        backgroundColor: '#0D8FBF',
+        backgroundColor: '#222831',
         scene: [(current_scene = new CampusScene(active_campus_id))],
     };
     game = new Phaser.Game(config);
@@ -510,6 +612,9 @@ async function loadModels() {
                                 e.id,
                                 e.anchors,
                                 e.endpoints,
+                                e.distance,
+                                e.crowdness,
+                                e.bicycle_able,
                                 i
                             );
                             break;
@@ -541,6 +646,7 @@ function create_buildings(scene) {
                         e.image
                     ))
                 );
+                e.game_object.setDepth(113);
                 let horizontal = e.width > e.height - 100;
                 let font_size = Math.min(
                     50,
@@ -563,7 +669,7 @@ function create_buildings(scene) {
                         {
                             align: 'center',
                             fontSize: parseInt(font_size) + 'px',
-                            color: '#ffff0f',
+                            color: '#eeeeee',
                             fontFamily: 'Microsoft YaHei',
                         }
                     )
@@ -594,8 +700,9 @@ function create_path(scene) {
 }
 
 function paintRegularPaths() {
-    graphics.lineStyle(path_width, 0xffffff, 1);
-    graphics.fillStyle(0xffffff, 1);
+    graphics.lineStyle(path_width, 0xeeeeee, 1);
+    graphics.fillStyle(0xeeeeee, 1);
+    graphics.setDepth(11);
     // paint regular paths
     for (const [_, e] of Object.entries(models)) {
         if (e instanceof Path && e.campus === current_scene.id) {
@@ -634,7 +741,7 @@ function _between(a, b, c) {
     return b >= Math.min(a, c) && b <= Math.max(a, c);
 }
 
-function followPath(id, from, to) {
+function followPath(speed_scale, id, from, to) {
     if (follow_state == FOLLOW_STATE.START_FOLLOW) {
         follow_state = FOLLOW_STATE.FOLLOWING;
         path_forward = models[id].endpoints[0] == from ? 1 : -1;
@@ -678,7 +785,10 @@ function followPath(id, from, to) {
         navigation_history.lineTo(player.x, player.y);
     }
     let _path_vec = math.multiply(
-        player.speed * delta_time * parseFloat(vue_app.time_scale),
+        speed_scale *
+            player.speed *
+            delta_time *
+            parseFloat(vue_app.time_scale),
         path_vec
     );
     player.incPosition(_path_vec[0], _path_vec[1]);
@@ -718,8 +828,8 @@ let navigation_history = new Path(114514, [], []);
 let cross_campus = false;
 const NAVIGATION_ROUTE_DEPTH = 1;
 function paintNavigationRoute() {
-    graphics.lineStyle(path_width, 0xff0000, 1);
-    graphics.fillStyle(0xff0000, 1);
+    graphics.lineStyle(path_width, 0xcaf7e3, 1);
+    graphics.fillStyle(0xcaf7e3, 1);
     graphics.setDepth(NAVIGATION_ROUTE_DEPTH);
     // paint regular paths
     for (let model_i of navigation_route) {
@@ -742,8 +852,8 @@ function paintNavigationRoute() {
 }
 
 function paintHistoryRoute() {
-    graphics.lineStyle(path_width, 0x000000, 1);
-    graphics.fillStyle(0x000000, 1);
+    graphics.lineStyle(path_width, 0x00adb5, 1);
+    graphics.fillStyle(0x00adb5, 1);
     // paint regular paths
     graphics.setDepth(14);
     navigation_history.curve.draw(graphics);
