@@ -1,6 +1,8 @@
 #include "json_parser.h"
 #include <iostream>
+#include <algorithm>
 #include <vector>
+#include <functional>
 #include "model/physical/building.h"
 #include "model/physical/path.h"
 #include "model/physical/physical_model.h"
@@ -106,12 +108,14 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
     json R;
     if(from == to)
     {
-        R["status"] = -1;
+        R["status"] = 1;
+        R["distance"] = {};
         return R.dump();
     }
     else if (from < 170 && to < 170 || from >= 170 && to >= 170)
     {
         auto nav = mh_ptr->navigate(from, to, strategy);
+        double distance = nav.second;
         if (nav.first.size() <= 1) 
         {
             R["status"] = 0;
@@ -119,7 +123,7 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
         else 
         {
             R["status"] = 1;
-            R["distance"] = nav.second;
+            R["distance"] = distance - 4000;
             R["navigation"] = nav.first;
         }
         return R.dump();
@@ -134,7 +138,7 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
         R1.push_back(R3);
         R["status"] = 2;
         R["navigation"] = R1;
-        R["distance"] = nav2.second + nav3.second + 20000;
+        R["distance"] = nav2.second + nav3.second + 20000 - 4000;
         return R.dump();
 
     }else
@@ -148,10 +152,86 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
         R1.push_back(R3);
         R["status"] = 2;
         R["navigation"] = R1;
-        R["distance"] = nav2.second + nav3.second + 20000;
+        R["distance"] = nav2.second + nav3.second + 20000 - 4000;
         return R.dump();
     }
     
+}
+
+std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, int strategy,json relay)
+{
+    int relay_size = relay.size();
+    double distance = 0;
+    if (relay_size == 0) {
+        return get_navigation(mh_ptr, from, to,strategy);
+    }
+    json R;
+    R["status"] = 1;
+    json tmp_path;
+    json part_nav; 
+    std::vector<int> original_points;
+    for (auto i = 0; i < relay_size; i++) {
+        original_points.push_back(stoi(relay[i].dump()));
+    }
+    if (from < to)
+    {
+        sort(original_points.begin(),original_points.end());
+    }
+    else
+    {
+        sort(original_points.rbegin(), original_points.rend());
+    }
+    
+
+    std::vector<int> points;
+    points.push_back(from);
+    for (auto i = 0; i < original_points.size(); i++) {
+        points.push_back(original_points[i]);
+    }
+    points.push_back(to);
+    int idx = 0;
+    for (int i = 0; i < points.size() - 1; i++) {
+        part_nav = json::parse(get_navigation(mh_ptr, points[i], points[i+1], strategy));
+        if(part_nav["status"] == 0)
+        {
+            R["status"] = 0;
+            return R.dump();
+        }
+        else if(part_nav["status"] == 1)
+        {
+            for (int j = 0; j < part_nav["navigation"].size()-1; j++)
+            {
+                tmp_path[idx].push_back(part_nav["navigation"][j]);
+            }
+        } 
+        else if (part_nav["status"] == 2) {
+            R["status"] = 2;
+            for (int j = 0; j < part_nav["navigation"][0].size(); j++) {
+                tmp_path[idx].push_back(part_nav["navigation"][0][j]);
+            }
+            idx++;
+            for (int j = 0; j < part_nav["navigation"][1].size()-1; j++)
+            {
+                tmp_path[idx].push_back(part_nav["navigation"][1][j]);
+            }
+        }
+        distance += stoi(part_nav["distance"].dump());
+    }
+    if (part_nav["status"] == 1)
+    {
+        tmp_path[idx].push_back(part_nav["navigation"][part_nav["navigation"].size() - 1]);
+    } else {
+        tmp_path[idx].push_back(part_nav["navigation"][1][part_nav["navigation"][1].size() - 1]);
+    }
+
+    if (idx == 0)
+    {
+        tmp_path = tmp_path[0];
+    }
+
+    R["navigation"] = tmp_path;
+    R["distance"] = distance;
+    return R.dump();
 }
 
 std::string get_player_initial_info() {

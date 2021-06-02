@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include "json/json_parser.h"
+#include "logger/logger.h"
 using namespace cinatra;
 
 int server_init(std::shared_ptr<ModelHub> model_hub) {
@@ -11,9 +12,11 @@ int server_init(std::shared_ptr<ModelHub> model_hub) {
     server.set_http_handler<GET,POST>("/v1/models", [=](request& req, response& res) {
         res.set_status_and_content(status_type::ok, std::move(get_all_models(model_hub)));
     });
+
     server.set_http_handler<GET,POST>("/v1/player", [=](request& req, response& res) {
         res.set_status_and_content(status_type::ok, std::move(get_player_initial_info()));
     });
+
     server.set_http_handler<GET,POST>("/v1/search", [=](request& req, response& res) {
         int distance = 1000;
         if(req.get_query_value("from").empty())
@@ -31,8 +34,9 @@ int server_init(std::shared_ptr<ModelHub> model_hub) {
 
         }
     });
+
     server.set_http_handler<GET,POST>("/v1/navigate", [=](request& req, response& res) {
-            int strategy = 1;
+            int strategy = 0;
             if(req.get_query_value("from").empty() || req.get_query_value("to").empty())
             {
                 res.set_status_and_content(status_type::bad_request);
@@ -45,11 +49,21 @@ int server_init(std::shared_ptr<ModelHub> model_hub) {
                 {
                     strategy = std::stoi(req.get_query_value("strategy").data());
                 }
-                res.set_status_and_content(status_type::ok, std::move(get_navigation(model_hub,from,to,strategy)));
+                if(req.get_query_value("relay").empty())
+                {
+                    res.set_status_and_content(status_type::ok, std::move(get_navigation(model_hub,from,to,strategy)));      
+                }
+                else
+                {
+                    auto relay = nlohmann::json::parse(req.get_query_value("relay").data());
+                    res.set_status_and_content(status_type::ok,std::move(get_navigation(model_hub, from, to, strategy, relay)));
+                   
+                }
 
             }
 
     });
+
     server.run();
     return 0;
 }
