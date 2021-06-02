@@ -396,21 +396,55 @@ window.onload = async function () {
             destination_id: -1,
             camera_zoom: camera_zoom,
             strategy_choices: navigation_choices,
-            radio_strategy: navigation_choices[0],
+            radio_strategy: navigation_choices[2],
             strategy: 0,
             system_clock: 0,
             drawer_show: false,
             camera_zoom_min: Math.max(h / world_h, w / world_w),
             screen_width: w,
             nearby_visible: false,
-            nearby_from: '厕所',
+            nearby_from: '',
             nearby_search: '',
             navigation_distance: 0,
-            nearby_table: [{ id: 0, name: '二楼', distance: 100 }],
+            nearby_table: [],
+            relay_enable: false,
+            relay_table: [],
+            relay_search: '',
         },
         methods: {
+            relaySearchSelect(val) {
+                console.log(val);
+                this.relay_search = '';
+                this.relay_table.push({
+                    id: val.id,
+                    name: val.value,
+                    campus: val.campus,
+                });
+            },
+            relayTableDelete(index) {
+                this.relay_table.splice(index, 1);
+            },
             changeTimeScale(val) {
                 this.time_scale = val;
+            },
+            queryModelsPhysical(query, callback) {
+                let results = [];
+                query = query.toLowerCase();
+                for (const [_, e] of Object.entries(models)) {
+                    if (
+                        e.name &&
+                        e.name.toLowerCase().indexOf(query) !== -1 &&
+                        e instanceof Building
+                    ) {
+                        results.push({
+                            value: e.name,
+                            id: e.id,
+                            type: e.constructor.name,
+                            campus: e.campus === 0 ? '沙河' : '西土城',
+                        });
+                    }
+                }
+                callback(results);
             },
             queryModels(query, callback) {
                 let results = [];
@@ -488,15 +522,34 @@ window.onload = async function () {
                 this.strategy = this.strategy_choices.indexOf(
                     this.radio_strategy
                 );
+                let cps = -1;
+                if (
+                    this.relay_enable &&
+                    (cps = models[this.destination_id].campus) ===
+                        models[player.position_id].campus
+                ) {
+                    for (let rl of this.relay_table) {
+                        if (models[rl.id].campus !== cps) {
+                            sweetAlert('暂时无法支持在两个校区之间反复横跳');
+                            return;
+                        }
+                    }
+                }
+                let nav_params = {
+                    from: player.position_id,
+                    to: this.destination_id,
+                    strategy: this.strategy_choices.indexOf(
+                        this.radio_strategy
+                    ),
+                };
+                if (this.relay_enable) {
+                    nav_params.relay = JSON.stringify(
+                        this.relay_table.map((it) => it.id)
+                    );
+                }
                 await axios
                     .get(remote_url + '/v1/navigate', {
-                        params: {
-                            from: player.position_id,
-                            to: this.destination_id,
-                            strategy: this.strategy_choices.indexOf(
-                                this.radio_strategy
-                            ),
-                        },
+                        params: nav_params,
                     })
                     .then((resp) => {
                         if (!resp.data.status) {
