@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 #include "json/json_parser.h"
-#include "logger/logger.h"
 using namespace cinatra;
 
 int server_init(std::shared_ptr<ModelHub> model_hub) {
@@ -11,16 +10,19 @@ int server_init(std::shared_ptr<ModelHub> model_hub) {
     server.listen("0.0.0.0", "8080");
     server.set_http_handler<GET,POST>("/v1/models", [=](request& req, response& res) {
         res.set_status_and_content(status_type::ok, std::move(get_all_models(model_hub)));
+        Logger::debug("Get models Successfully");
     });
 
     server.set_http_handler<GET,POST>("/v1/player", [=](request& req, response& res) {
         res.set_status_and_content(status_type::ok, std::move(get_player_initial_info()));
+        Logger::debug("Get player info Successfully");
     });
 
     server.set_http_handler<GET,POST>("/v1/search", [=](request& req, response& res) {
         int distance = 1000;
         if(req.get_query_value("from").empty())
         {
+            Logger::error("arg (from) MISSED");
             res.set_status_and_content(status_type::bad_request);
         }
         else
@@ -39,10 +41,11 @@ int server_init(std::shared_ptr<ModelHub> model_hub) {
             int strategy = 0;
             if(req.get_query_value("from").empty() || req.get_query_value("to").empty())
             {
+                Logger::error("arg (from) or (to) MISSED");
                 res.set_status_and_content(status_type::bad_request);
             }
             else
-            {           
+            {   
                 int from = std::stoi(req.get_query_value("from").data());
                 int to = std::stoi(req.get_query_value("to").data());
                 if(!req.get_query_value("strategy").empty())
@@ -51,13 +54,12 @@ int server_init(std::shared_ptr<ModelHub> model_hub) {
                 }
                 if(req.get_query_value("relay").empty())
                 {
-                    res.set_status_and_content(status_type::ok, std::move(get_navigation(model_hub,from,to,strategy)));      
+                    res.set_status_and_content(status_type::ok, std::move(get_navigation(model_hub,from,to,strategy,nlohmann::json{})));      
                 }
                 else
                 {
                     auto relay = nlohmann::json::parse(req.get_query_value("relay").data());
                     res.set_status_and_content(status_type::ok,std::move(get_navigation(model_hub, from, to, strategy, relay)));
-                   
                 }
 
             }

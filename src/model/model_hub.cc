@@ -18,7 +18,7 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
 
     // TODO: implement me
     if (Logger::get_instance() != nullptr) {
-        auto fmt = boost::str(boost::format("adding %1% to hub") % (model_type + params[0]));
+        auto fmt = boost::str(boost::format("adding %1% to hub") % (model_type + " " + params[0]));
         Logger::debug(fmt);
     }
     Id id = stoi(params[0]);
@@ -147,8 +147,6 @@ std::pair<std::vector<int>,double> ModelHub::navigate(Id model_1, Id model_2, in
 
     auto _model_1 = this->get(model_1);
     auto _model_2 = this->get(model_2);
-    Logger::info(boost::str(boost::format("正在从[%1%]\"%2%\"导航至[%3%]\"%4%\"") % model_1 % _model_1->get_name() %
-                            model_2 % _model_2->get_name()));
     auto distance = this->nav.navigate(model_1, model_2, method);
     auto route = this->nav.get_route();
     for (auto it = route.begin(); it + 1 != route.end(); it++) {

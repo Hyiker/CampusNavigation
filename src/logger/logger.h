@@ -15,7 +15,7 @@ class Logger {
     LogLevel log_level;
     static Logger* instance;
 
-    void write_to_stream(const std::string&);
+    void write_to_stream(const std::string&, LogLevel);
 
    public:
     // filename could be a path, stdout or stderr

@@ -38,7 +38,7 @@ shared_ptr<ModelHub> BootLoader::load_model_hub(const string& filename) {
     ifstream ifs(filename);
     string line;
     while (!ifs.eof()) {
-        Logger::debug("reading a line");
+        //Logger::debug("reading a line");
         getline(ifs, line);
         if (line.length() > 0) {
             parse_model(hub, line);

@@ -46,12 +46,12 @@ Logger::~Logger() {
         Logger::instance = nullptr;
     }
 }
-void Logger::write_to_stream(const string& message) {
+void Logger::write_to_stream(const string& message, LogLevel lvl) {
     auto stream = this->out.get();
     auto t = std::time(nullptr);
     auto tm = *std::localtime(&t);
     string level_str;
-    switch (this->log_level) {
+    switch (lvl) {
         case LogLevel::INFO:
             level_str = "INFO";
             break;
@@ -90,24 +90,24 @@ inline static bool can_output(LogLevel instance_level, LogLevel msg_level) {
 void Logger::info(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::INFO)) {
-        Logger::get_instance()->write_to_stream(msg);
+        Logger::get_instance()->write_to_stream(msg, LogLevel::INFO);
     }
 }
 void Logger::debug(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::DEBUG)) {
-        Logger::get_instance()->write_to_stream(msg);
+        Logger::get_instance()->write_to_stream(msg, LogLevel::DEBUG);
     }
 }
 void Logger::warn(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::WARN)) {
-        Logger::get_instance()->write_to_stream(msg);
+        Logger::get_instance()->write_to_stream(msg, LogLevel::WARN);
     }
 }
 void Logger::error(const string& msg) {
     auto instance = Logger::get_instance();
     if (can_output(instance->log_level, LogLevel::ERROR)) {
-        Logger::get_instance()->write_to_stream(msg);
+        Logger::get_instance()->write_to_stream(msg, LogLevel::ERROR);
     }
 }

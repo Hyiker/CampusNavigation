@@ -10,7 +10,7 @@
 int main(int argc, const char** argv) {
     
     std::string path = "../test/test_data/algo/model.csv";
-    Logger::init("stderr", FileMode::OVERRIDE, LogLevel::DEBUG);
+    Logger::init("stderr", FileMode::OVERRIDE, LogLevel::INFO);
     std::shared_ptr<ModelHub> model_hub = BootLoader::load_model_hub(path);
     server_init(model_hub);
     return 0;

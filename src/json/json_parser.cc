@@ -163,7 +163,8 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
     int relay_size = relay.size();
     double distance = 0;
     if (relay_size == 0) {
-        return get_navigation(mh_ptr, from, to,strategy);
+        Logger::debug("Navigate from ["+ std::to_string(from) +"]\"" + mh_ptr->get(from)->get_name()  +"\" to [" + std::to_string(to)+"]\""+
+        mh_ptr->get(to)->get_name()+"\".");
     }
     json R;
     R["status"] = 1;
@@ -181,7 +182,6 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
     {
         sort(original_points.rbegin(), original_points.rend());
     }
-    
 
     std::vector<int> points;
     points.push_back(from);
@@ -231,6 +231,8 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
 
     R["navigation"] = tmp_path;
     R["distance"] = distance;
+    Logger::debug("Navigate from ["+ std::to_string(from) +"]\"" + mh_ptr->get(from)->get_name()  +"\" to [" + std::to_string(to)+"]\""+
+    mh_ptr->get(to)->get_name()+"\".");
     return R.dump();
 }
 
