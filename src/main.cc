@@ -1,6 +1,8 @@
 #include <iostream>
 #include <memory>
+#include <string>
 #include "boot/bootloader.h"
+#include <boost/program_options.hpp>
 #include "cli/cli.hpp"
 #include "logger/logger.h"
 #include "model/logical/course.h"
@@ -8,10 +10,28 @@
 #include "server/server.h"
 
 int main(int argc, const char** argv) {
-    
-    std::string path = "../test/test_data/algo/model.csv";
-    Logger::init("stderr", FileMode::OVERRIDE, LogLevel::INFO);
-    std::shared_ptr<ModelHub> model_hub = BootLoader::load_model_hub(path);
+    namespace po = boost::program_options;
+
+    std::string map_path = "./model.csv";
+    std::string log_path = "stderr";
+    int idx = 1;
+
+    if (argc >= 3) {
+        while(idx < argc-1)
+        {
+            if(std::string(argv[idx]) == "-p" || std::string(argv[idx]) == "--path")
+            {
+            map_path = argv[idx+1];
+            }
+            else if(std::string(argv[idx]) == "-l" || std::string(argv[idx]) == "--log")
+            {
+            logger_path = argv[idx+1];
+            }
+            idx++;
+        }
+    }
+    Logger::init(log_path, FileMode::OVERRIDE, LogLevel::INFO);
+    std::shared_ptr<ModelHub> model_hub = BootLoader::load_model_hub(map_path);
     server_init(model_hub);
     return 0;
 }

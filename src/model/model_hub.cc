@@ -17,10 +17,10 @@ shared_ptr<Model> ModelHub::construct_with_list(string& model_type, vector<strin
     }
 
     // TODO: implement me
-    if (Logger::get_instance() != nullptr) {
-        auto fmt = boost::str(boost::format("adding %1% to hub") % (model_type + " " + params[0]));
-        Logger::debug(fmt);
-    }
+    //if (Logger::get_instance() != nullptr) {
+    //    auto fmt = boost::str(boost::format("adding %1% to hub") % (model_type + " " + params[0]));
+    //    Logger::debug(fmt);
+    //}
     Id id = stoi(params[0]);
 
     shared_ptr<Model> model_ptr;

@@ -36,6 +36,11 @@ static void parse_model(shared_ptr<ModelHub> hub, string& line) {
 shared_ptr<ModelHub> BootLoader::load_model_hub(const string& filename) {
     auto hub = make_shared<ModelHub>();
     ifstream ifs(filename);
+    if(ifs.fail())
+    {
+        Logger::error("打开地图文件失败，请检查文件路径是否正确");
+        exit(0);
+    }
     string line;
     while (!ifs.eof()) {
         //Logger::debug("reading a line");
@@ -44,5 +49,7 @@ shared_ptr<ModelHub> BootLoader::load_model_hub(const string& filename) {
             parse_model(hub, line);
         }
     }
+    Logger::info("成功从地图文件中加载了模型数据");
+    Logger::info("请在浏览器中打开: http://dir.bj1.byr.cool:11209/ 查看导览效果");
     return hub;
 }

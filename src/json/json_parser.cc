@@ -163,7 +163,7 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
     int relay_size = relay.size();
     double distance = 0;
     if (relay_size == 0) {
-        Logger::debug("Navigate from ["+ std::to_string(from) +"]\"" + mh_ptr->get(from)->get_name()  +"\" to [" + std::to_string(to)+"]\""+
+        Logger::info("用户从 ["+ std::to_string(from) +"]\"" + mh_ptr->get(from)->get_name()  +"\" 导航到 [" + std::to_string(to)+"]\""+
         mh_ptr->get(to)->get_name()+"\".");
     }
     json R;
@@ -231,8 +231,8 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
 
     R["navigation"] = tmp_path;
     R["distance"] = distance;
-    Logger::debug("Navigate from ["+ std::to_string(from) +"]\"" + mh_ptr->get(from)->get_name()  +"\" to [" + std::to_string(to)+"]\""+
-    mh_ptr->get(to)->get_name()+"\".");
+    Logger::info("用户从 ["+ std::to_string(from) +"]\"" + mh_ptr->get(from)->get_name()  +"\" 导航到 [" + std::to_string(to)+"]\""+
+        mh_ptr->get(to)->get_name()+"\".");
     return R.dump();
 }
 
