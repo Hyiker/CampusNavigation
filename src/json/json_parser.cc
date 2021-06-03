@@ -165,6 +165,7 @@ std::string get_navigation(std::shared_ptr<ModelHub> mh_ptr, int from, int to, i
     if (relay_size == 0) {
         Logger::info("用户从 ["+ std::to_string(from) +"]\"" + mh_ptr->get(from)->get_name()  +"\" 导航到 [" + std::to_string(to)+"]\""+
         mh_ptr->get(to)->get_name()+"\".");
+        return get_navigation(mh_ptr, from, to, strategy);
     }
     json R;
     R["status"] = 1;

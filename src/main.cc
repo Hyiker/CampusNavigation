@@ -25,7 +25,7 @@ int main(int argc, const char** argv) {
             }
             else if(std::string(argv[idx]) == "-l" || std::string(argv[idx]) == "--log")
             {
-            logger_path = argv[idx+1];
+            log_path = argv[idx+1];
             }
             idx++;
         }
